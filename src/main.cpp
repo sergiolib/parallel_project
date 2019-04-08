@@ -4,6 +4,9 @@
 
 #include <iostream>
 #include "mpi.h"
+#include "GeneticAlgorithm.h"
+#include "Problem1.h"
+#include "Problem.h"
 #include <opencv2/opencv.hpp>
 
 using namespace std;
@@ -34,6 +37,12 @@ int main(int argc, char **argv) {
         }
 
         Mat image = imread(file, IMREAD_COLOR);
+
+        /* Problem definition */
+        /* 1) */
+        Problem p1 = Problem(&image);
+
+        cout << "Hola" << endl;
     }
 
     MPI_Finalize();
