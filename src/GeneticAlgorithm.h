@@ -9,13 +9,17 @@
 #include "Population.h"
 #include "Individual.h"
 #include "utils.h"
+#include "conf.h"
 
 class GeneticAlgorithm {
 public:
     GeneticAlgorithm();
-    mate(Individual ind1, Individual ind2, int numberOfPolygons, int numberOfVertices, int maxX, int maxY);
-    twoPointCrossover(Individual ind1,Individual ind2, vector<Polygon>off1, vector<Polygon>off2);
+    vector<Individual> mate(Individual *ind1, Individual *ind2, int numberOfPolygons, int numberOfVertices, int maxX, int maxY);
+    void twoPointCrossover(Individual *ind1,Individual *ind2, list<Polygon*> off1, list<Polygon*>off2);
 private:
+    int indivs;
+    int polys ;
+    int vertices;
     Population *pop;
 };
 

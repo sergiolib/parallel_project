@@ -92,3 +92,7 @@ void Individual::remove_dna(int index) {
     advance(it, index);
     this->dna->erase(it);
 }
+
+int Individual::get_len_dna(){
+    return this->dna->size();
+}

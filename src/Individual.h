@@ -18,10 +18,12 @@ public:
     Polygon *get_dna(int index);
     void insert_dna(int index, Polygon *p);
     void remove_dna(int index);
+    double fitness;
+    int get_len_dna();
 
 private:
     list<Polygon *> *dna = new list<Polygon *>();
-    double fitness;
+
     int max_x;
     int max_y;
 
