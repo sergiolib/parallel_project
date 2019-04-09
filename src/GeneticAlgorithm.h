@@ -7,13 +7,21 @@
 
 
 #include "Population.h"
+#include "Individual.h"
+#include "utils.h"
 
 class GeneticAlgorithm {
 public:
     GeneticAlgorithm();
-
+    mate(Individual ind1, Individual ind2, int numberOfPolygons, int numberOfVertices, int maxX, int maxY);
+    twoPointCrossover(Individual ind1,Individual ind2, vector<Polygon>off1, vector<Polygon>off2);
 private:
     Population *pop;
+    int crossOverRate;// probability of crossover
+    int mutationRate; // probability of a mutation
+    int maxNumberOfPolygons;
+    int maxNumberOfVertices;
+    int initialPolys;
 };
 
 
