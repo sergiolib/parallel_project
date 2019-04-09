@@ -35,18 +35,18 @@ vector<Individual> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, in
     if(rand <= crossOverRate){
         twoPointCrossover( ind1, ind2, polys1, polys2);}
     else{
-        cloneParents( ind1->dna, ind2->dna, polys1, polys2);}
+        cloneParents( ind1, ind2, polys1, polys2);}
 
-    Individual *offspring1 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, polys1);
-    Individual *offspring2 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, polys2);
+    Individual *offspring1 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys1);
+    Individual *offspring2 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys2);
 
     rand = utils::random();
     if(rand <= mutationRate) {
-        offspring1.mutate();
+        offspring1->mutate();
     }
     rand = utils::random();
     if(rand <= mutationRate)  {
-        offspring2.mutate();
+        offspring2->mutate();
     }
     individuals.push_back(*offspring1);
     individuals.push_back(*offspring2);
@@ -54,40 +54,40 @@ vector<Individual> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, in
     return individuals;
 }
 
-void GeneticAlgorithm::twoPointCrossover(Individual ind1,Individual ind2, list<Polygon *> *off1, list<Polygon *> *off2) {
+void GeneticAlgorithm::twoPointCrossover(Individual *ind1,Individual *ind2, list<Polygon *> off1, list<Polygon *> off2) {
 
-    var par1 = ind1.dna;
-    var par2 = ind2.dna;
+    Individual par1 = *ind1; //here it was ind1.dna
+    Individual par2 = *ind2; //here it was ind2.dna
 
-    var fittest = ind1.fitness > ind2.fitness ? par1 : par2;
+    Individual fittest = ind1->fitness > ind2->fitness ? par1 : par2;
 
-    var max = par1.length < par2.length ? par1.length : par2.length;
+    int max = par1.get_len_dna() < par2.get_len_dna() ? par1.get_len_dna() : par2.get_len_dna();
 
-    var r1 = nextInt(max-1);
-    var r2 = nextInt(max-1);
-    var i1 = Math.min(r1, r2);
-    var i2 = Math.max(r1, r2);
-
-    for(var i = 0; i < i1; i++) {
-        off1.push(clonePoly(fittest[i]));
-        off2.push(clonePoly(fittest[i]));
+    int r1 = utils::next_int(max-1);
+    int r2 = utils::next_int(max-1);
+    int i1 = std::min(r1, r2);
+    int i2 = std::max(r1, r2);
+    int i = 0;
+    for( i = 0; i < i1; i++) {
+        off1.push_back(clonePoly(fittest.get_dna(i)));
+        off2.push_back(clonePoly(fittest.get_dna(i)));
     }
 
-    var clones1 = [];
-    var clones2 = [];
+    vector<Polygon*> clones1;
+    vector<Polygon*> clones2;
 
-    for(var i = i1; i <= i2; i++) {
-        clones1.push(clonePoly(par2[i]));
-        clones2.push(clonePoly(par1[i]));
+    for( i = i1; i <= i2; i++) {
+        clones1.push_back(clonePoly(par2.get_dna(i)));
+        clones2.push_back(clonePoly(par1.get_dna(i)));
+    }
+    int len = clones1.size();
+    for(i = 0; i < len; i++) {
+        off1.push_back(clones1[i]);
+        off2.push_back(clones2[i]);
     }
 
-    for(var i = 0, len = clones1.length; i < len; i++) {
-        off1.push(clones1[i]);
-        off2.push(clones2[i]);
-    }
-
-    for(var i = i2 + 1; i < fittest.length; i++) {
-        off1.push(clonePoly(fittest[i]));
-        off2.push(clonePoly(fittest[i]));
+    for(i = i2 + 1; i < fittest.get_len_dna(); i++) {
+        off1.push_back(clonePoly(fittest.get_dna(i)));
+        off2.push_back(clonePoly(fittest.get_dna(i)));
     }
 }
