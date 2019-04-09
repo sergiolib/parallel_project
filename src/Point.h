@@ -9,9 +9,11 @@
 class Point {
 public:
     Point(int x, int y);
-
+    void set_x(int x);
+    void set_y(int y);
 private:
-    int x, y;
+    int x;
+    int y;
 };
 
 

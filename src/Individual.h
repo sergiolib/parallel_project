@@ -2,7 +2,6 @@
 // Created by sliberman on 4/5/19.
 //
 
-#include <vector>
 #include "Polygon.h"
 
 using namespace std;
@@ -13,12 +12,18 @@ using namespace std;
 
 class Individual {
 public:
-    Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y, vector<Polygon *> *cloned_polys);
+    Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y, list<Polygon *> *cloned_polys);
+    Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y);
     void mutate();
 
 private:
-    vector<Polygon *> *dna = new vector<Polygon *>();
+    list<Polygon *> *dna = new list<Polygon *>();
     double fitness;
+    int max_x;
+    int max_y;
+    Polygon *get_dna(int index);
+    void insert_dna(int index, Polygon *p);
+    void remove_dna(int index);
 };
 
 

@@ -24,3 +24,19 @@ double Colour::random_alpha() {
     uniform_real_distribution<> dis(0.0, 1.0);
     return dis(gen);
 }
+
+void Colour::set_r(int r) {
+    this->r = r;
+}
+
+void Colour::set_g(int g) {
+    this->g = g;
+}
+
+void Colour::set_b(int b) {
+    this->b = b;
+}
+
+void Colour::set_a(double a) {
+    this->a = a;
+}
