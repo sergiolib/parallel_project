@@ -5,7 +5,6 @@
 #include <iostream>
 #include "mpi.h"
 #include "GeneticAlgorithm.h"
-#include "Problem1.h"
 #include "Problem.h"
 #include <opencv2/opencv.hpp>
 
@@ -40,7 +39,7 @@ int main(int argc, char **argv) {
 
         /* Problem definition */
         /* 1) */
-        Problem p1 = Problem1(&image);
+        Problem p1 = Problem(&image, 10000);
 
         cout << "Hola" << endl;
     }
