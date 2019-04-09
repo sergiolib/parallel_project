@@ -3,6 +3,7 @@
 //
 
 #include <random>
+#include "utils.h"
 
 using namespace std;
 
@@ -23,13 +24,6 @@ double random_alpha() {
     return dis(gen);
 }
 
-int nextInt(int max) {
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, max);
-    return dis(gen);
-}
-
 Polygon *Polygon::random_polygon(int numberOfVertices, int maxX, int maxY) {
     unsigned char r, g, b;
     double a;
@@ -39,11 +33,11 @@ Polygon *Polygon::random_polygon(int numberOfVertices, int maxX, int maxY) {
     b = random_colour();
     a = random_alpha();
 
-    auto poly = new Polygon(new Colour(r, g, b, a));
+    Polygon* poly = new Polygon(new Colour(r, g, b, a));
 
     for (int i = 0; i < numberOfVertices; ++i) {
-        int x = nextInt(maxX);
-        int y = nextInt(maxY);
+        int x = utils::nextInt(maxX);
+        int y = utils::nextInt(maxY);
         poly->addPoint(Point(x, y));
     }
 
