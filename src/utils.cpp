@@ -41,10 +41,15 @@ double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_ar
     return 1 - ((double)e1 / (double)(255*3*width*height));
 }
 
-unsigned char *utils::draw_individuals(vector<Individual *> individuals, int width, int height) {
-    auto *res = new unsigned char[width * height];
-    for (auto it = individuals.begin(); it != individuals.end(); ++it) {
-        (*it)->draw(res, width, height);
+bool utils::is_in_polygon(int x, int y, Polygon polygon) {
+    bool is_in = false;
+    int num_points = polygon.get_points_length();
+    for (int i = 0, j = num_points - 1; i < num_points; j = i++) {
+        Point *p1 = polygon.get_point(i);
+        Point *p2 = i + 1 < num_points ? polygon.get_point(i) : polygon.get_point(0);
+        if (((p1->get_y() >= y) != (p2->get_y() >= y)) && (x <= (double)(p2->get_x() - p1->get_x()) * (double)(y - p1->get_y()) / (double)(p2->get_y() - p1->get_y()) + p1->get_x())) {
+            is_in = !is_in;
+        }
     }
-    return res;
+    return is_in;
 }
