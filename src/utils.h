@@ -8,7 +8,8 @@
 
 class utils {
 public:
-    static nextInt(int n);
+    static int nextInt(int n);
+    static double random();
 };
 
 
