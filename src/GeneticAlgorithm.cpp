@@ -13,11 +13,20 @@
 GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height) {
     this->pop = new Population(3, conf::initial_polys, 3, width, height);
     this->data = pixels;
+    this->width = width;
+    this->height = height;
 }
 
 void GeneticAlgorithm::evolve(int max_epochs) {
-    unsigned char *bytes = utils::draw_individuals(this->pop->get_individuals());
+    auto *res = new unsigned char[this->width * this->height];
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
+        res = {0};
+
+        vector<Individual *> individuals = this->pop->get_individuals();
+        Individual *ind = individuals.back();
+        ind->draw(res, width, height);
+
+        unsigned char *bytes = utils::draw_individuals(this->pop->get_individuals());
         double fitness = utils::diff(bytes, this->data, width, height);
     }
 }
