@@ -17,11 +17,12 @@ public:
             int initial_number_of_vertices, int max_x, int max_y);
     double max;
     vector<Individual *> get_individuals();
+    Individual *elite = nullptr;
+    int s = 0; //fitness sum - sum ranks
 
 private:
     vector<Individual *> individuals;
-    //auto elite=null;
-    int s = 0; //fitness sum - sum ranks
+
 };
 
 

@@ -9,34 +9,35 @@
 #include "Population.h"
 #include "conf.h"
 #include <vector>
+#include <algorithm>
+using namespace std;
 
 GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height) {
     this->pop = new Population(3, conf::initial_polys, 3, width, height);
     this->data = pixels;
     this->width = width;
     this->height = height;
+    this->numPolygons = 1;
+
 }
 
-void GeneticAlgorithm::evolve(int max_epochs) {
-    auto *res = new unsigned char[this->width * this->height];
-    for (int epoch = 0; epoch < max_epochs; ++epoch) {
-        res = {0};
-
-        vector<Individual *> individuals = this->pop->get_individuals();
-        Individual *ind = individuals.back();
-        ind->draw(res, width, height);
-
-        unsigned char *bytes = utils::draw_individuals(this->pop->get_individuals());
-        double fitness = utils::diff(bytes, this->data, width, height);
-    }
+void sortByFitness(vector<Individual *> indArr) {
+    sort(indArr.begin(),indArr.end());
 }
 
-vector<Individual> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
+/**
+ * probabilistically select an individual from the population based on their
+ * fitness. this uses rank selection. although could use
+ * roulette(indArr, fitnessSum) for roulette wheel selection.
+ */
+
+
+vector<Individual*> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
             int numberOfVertices, int maxX,
         int maxY){
     double mutationRate = conf::mutation_rate;
     double crossOverRate = conf::cross_over_rate;
-    vector<Individual> individuals;
+    vector<Individual*> individuals;
 
     list<Polygon *> polys1;
     list<Polygon *> polys2;
@@ -57,8 +58,8 @@ vector<Individual> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, in
     if(rand <= mutationRate)  {
         offspring2->mutate();
     }
-    individuals.push_back(*offspring1);
-    individuals.push_back(*offspring2);
+    individuals.push_back(offspring1);
+    individuals.push_back(offspring2);
 
     return individuals;
 }
@@ -98,5 +99,52 @@ void GeneticAlgorithm::twoPointCrossover(Individual *ind1,Individual *ind2, list
     for(i = i2 + 1; i < fittest.get_len_dna(); i++) {
         off1.push_back(clonePoly(fittest.get_dna(i)));
         off2.push_back(clonePoly(fittest.get_dna(i)));
+    }
+}
+
+void GeneticAlgorithm::evolve(int max_epochs) {
+    auto *res = new unsigned char[this->width * this->height];
+    Individual *bestInd = nullptr;
+    int j = 0;
+    for (int epoch = 0; epoch < max_epochs; ++epoch) {
+        if (j != this->indivs) {
+            res = {0};
+            vector<Individual *> individuals = this->pop->get_individuals();
+            Individual *ind = individuals.back();
+            ind->draw(res, width, height);
+
+            unsigned char *bytes = utils::draw_individuals(this->pop->get_individuals());
+            double fitness = utils::diff(bytes, this->data, width, height);
+            if (fitness > this->pop->max) {
+                bestInd = ind;
+                this->pop->max = fitness;
+                this->pop->elite = ind; //I think this is not used so I commented it
+            }
+            j++;
+        }
+        else{
+            if(bestInd != nullptr) {
+                //unsigned char *bestPixels = utils::draw_individuals(this->pop->get_individuals());
+                //
+                int polys_len = bestInd->get_len_dna();
+                if(polys_len != this->numPolygons) {
+                    this->numPolygons = polys_len;
+                }
+            }
+            sortByFitness(this->pop->get_individuals());
+            vector<Individual *> nextGeneration;
+            nextGeneration.push_back(this->pop->elite);
+            int i ;
+            for( i = 1; i < j; i += 2) {
+                Individual parent1 = fps(this->pop->get_individuals(), this->pop->s);
+                Individual parent2 = fps(this->pop->get_individuals(), this->pop->s);
+                vector<Individual*> offspring = mate(parent1, parent2, this->numPolygons,
+                                                    this->vertices, this->width, this->height);
+                nextGeneration.push_back(offspring.at(0));
+                nextGeneration.push_back(offspring.at(1));
+            }
+            this->pop->individuals = nextGeneration;
+        }
+
     }
 }
