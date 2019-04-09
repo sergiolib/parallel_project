@@ -10,8 +10,16 @@
 #include "conf.h"
 #include <vector>
 
-GeneticAlgorithm::GeneticAlgorithm() {
-    this->pop = new Population();
+GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height) {
+    this->pop = new Population(3, conf::initial_polys, 3, width, height);
+    this->data = pixels;
+}
+
+void GeneticAlgorithm::evolve(int max_epochs) {
+    unsigned char *bytes = utils::draw_individuals(this->pop->get_individuals());
+    for (int epoch = 0; epoch < max_epochs; ++epoch) {
+        double fitness = utils::diff(bytes, this->data, width, height);
+    }
 }
 
 vector<Individual> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
