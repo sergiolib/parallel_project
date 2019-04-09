@@ -18,16 +18,14 @@ GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height)
 }
 
 void GeneticAlgorithm::evolve(int max_epochs) {
-    auto *res = new unsigned char[this->width * this->height];
+    auto *bytes = new unsigned char[this->width * this->height * 4];
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
-        res = {0};
-
         vector<Individual *> individuals = this->pop->get_individuals();
         Individual *ind = individuals.back();
-        ind->draw(res, width, height);
+        ind->draw(bytes, width, height);
 
-        unsigned char *bytes = utils::draw_individuals(this->pop->get_individuals());
         double fitness = utils::diff(bytes, this->data, width, height);
+
     }
 }
 

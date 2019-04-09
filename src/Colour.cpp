@@ -40,3 +40,19 @@ void Colour::set_b(int b) {
 void Colour::set_a(double a) {
     this->a = a;
 }
+
+int Colour::get_r() {
+    return r;
+}
+
+int Colour::get_b() {
+    return b;
+}
+
+int Colour::get_g() {
+    return g;
+}
+
+double Colour::get_a() {
+    return a;
+}
