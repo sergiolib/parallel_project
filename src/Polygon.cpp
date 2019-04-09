@@ -9,7 +9,7 @@
 
 using namespace std;
 
-Polygon *Polygon::random_polygon(int numberOfVertices, int maxX, int maxY) {
+Polygon *Polygon::random_polygon(int number_of_vertices, int max_x, int max_y) {
     unsigned char r, g, b;
     double a;
 
@@ -20,9 +20,9 @@ Polygon *Polygon::random_polygon(int numberOfVertices, int maxX, int maxY) {
 
     Polygon *poly = new Polygon(new Colour(r, g, b, a));
 
-    for (int i = 0; i < numberOfVertices; ++i) {
-        int x = utils::next_int(maxX);
-        int y = utils::next_int(maxY);
+    for (int i = 0; i < number_of_vertices; ++i) {
+        int x = utils::next_int(max_x);
+        int y = utils::next_int(max_y);
         poly->add_point(new Point(x, y));
     }
 

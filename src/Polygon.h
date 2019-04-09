@@ -16,7 +16,7 @@ using namespace std;
 class Polygon {
 public:
     Polygon(Colour *colour);
-    static Polygon* random_polygon(int numberOfVertices, int maxX, int maxY);
+    static Polygon* random_polygon(int number_of_vertices, int max_x, int max_y);
     Colour *colour;
     void move(int max_x, int max_y);
     Point *get_point(int index);
