@@ -17,11 +17,6 @@ public:
     twoPointCrossover(Individual ind1,Individual ind2, vector<Polygon>off1, vector<Polygon>off2);
 private:
     Population *pop;
-    int crossOverRate;// probability of crossover
-    int mutationRate; // probability of a mutation
-    int maxNumberOfPolygons;
-    int maxNumberOfVertices;
-    int initialPolys;
 };
 
 

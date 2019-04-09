@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
         /* Problem definition */
         /* 1) */
-        Problem p1 = Problem(&image);
+        Problem p1 = Problem1(&image);
 
         cout << "Hola" << endl;
     }

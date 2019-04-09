@@ -7,40 +7,36 @@
 #include "Polygon.h"
 #include "utils.h"
 #include "Population.h"
+#include "conf.h"
 #include <vector>
 
 GeneticAlgorithm::GeneticAlgorithm() {
     this->pop = new Population();
-    this->crossOverRate = 0; // probability of crossover
-    this-> mutationRate= 1; // probability of a mutation
-    this->maxNumberOfPolygons= 500;
-    this->maxNumberOfVertices = 6;
-    this->initialPolys = 50;
-    }
+}
 
-vector<Individual> GeneticAlgorithm::mate(Individual ind1, Individual ind2, int numberOfPolygons,
+vector<Individual> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
             int numberOfVertices, int maxX,
         int maxY){
-    int mutationRate  = this->mutationRate;
-    int crossOverRate = this->crossOverRate;
+    double mutationRate = conf::mutation_rate;
+    double crossOverRate = conf::cross_over_rate;
     vector<Individual> individuals;
 
-    vector<Polygon> polys1;
-    vector<Polygon> polys2;
-    double rand = ((double)arc4random() / ARC4RANDOM_MAX); //random number between [0,1)
+    list<Polygon *> polys1;
+    list<Polygon *> polys2;
+    double rand = utils::random(); //random number between [0,1)
     if(rand <= crossOverRate){
         twoPointCrossover( ind1, ind2, polys1, polys2);}
     else{
-        cloneParents( ind1.dna, ind2.dna, polys1, polys2);}
+        cloneParents( ind1->dna, ind2->dna, polys1, polys2);}
 
     Individual *offspring1 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, polys1);
     Individual *offspring2 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, polys2);
 
-    rand = ((double)arc4random() / ARC4RANDOM_MAX);
+    rand = utils::random();
     if(rand <= mutationRate) {
         offspring1.mutate();
     }
-    rand = ((double)arc4random() / ARC4RANDOM_MAX);
+    rand = utils::random();
     if(rand <= mutationRate)  {
         offspring2.mutate();
     }
@@ -50,7 +46,7 @@ vector<Individual> GeneticAlgorithm::mate(Individual ind1, Individual ind2, int 
     return individuals;
 }
 
-void GeneticAlgorithm::twoPointCrossover(Individual ind1,Individual ind2, vector<Polygon *> *off1, vector<Polygon *> *off2) {
+void GeneticAlgorithm::twoPointCrossover(Individual ind1,Individual ind2, list<Polygon *> *off1, list<Polygon *> *off2) {
 
     var par1 = ind1.dna;
     var par2 = ind2.dna;
