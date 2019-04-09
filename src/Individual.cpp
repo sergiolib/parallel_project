@@ -4,6 +4,7 @@
 
 #include "utils.h"
 #include "Individual.h"
+#include "conf.h"
 
 Individual::Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y,
                        list<Polygon *> *cloned_polys) {
@@ -16,6 +17,7 @@ Individual::Individual(int number_of_polygons, int number_of_vertices, int max_x
 Individual::Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y) {
     this->max_x = max_x;
     this->max_y = max_y;
+    this->number_of_vertices = number_of_vertices;
     for (int i = 0; i < number_of_polygons; ++i) {
         this->dna->push_back(Polygon::random_polygon(number_of_polygons, max_x, max_y));
     }
@@ -26,7 +28,7 @@ void Individual::mutate() {
     int len = dna->size();
 
     int idx1 = utils::nextInt(len - 1);
-    Polygon *poly = this->dna->at(idx1);
+    Polygon *poly = this->get_dna(idx1);
     double r = utils::random();
 
     if (r < 0.45) {
@@ -48,7 +50,7 @@ void Individual::mutate() {
             if (r < 0.7875) {
                 point->set_x(utils::nextInt(this->max_x));
             } else {
-                point->set_y(utils::nextInt(this->max_y))
+                point->set_y(utils::nextInt(this->max_y));
             }
         }
     } else if (r < 0.95) {
@@ -56,18 +58,37 @@ void Individual::mutate() {
             poly->remove_point();
         } else {
             int len2 = poly->get_points_length();
-            poly->insert_point(utils::nextInt(len2),
-                    new Point(utils::nextInt(this->max_x), utils::nextInt(this->max_y)));
+            if (len2 < conf::max_number_of_vertices) {
+                poly->insert_point(utils::nextInt(len2),
+                        new Point(utils::nextInt(this->max_x), utils::nextInt(this->max_y)));
+            }
         }
     } else {
         if (r < 0.975) {
             if (len >= 2) {
+                this->remove_dna(idx1);
+            }
+        } else {
+            if (len < conf::max_number_of_polygons) {
+                this->insert_dna(utils::nextInt(len),
+                        Polygon::random_polygon(this->number_of_vertices, max_x, max_y));
             }
         }
     }
 }
 
 Polygon *Individual::get_dna(int index) {
-    auto it = next(this->dna, index);
-    return it;
+    return *next(this->dna->begin(), index);
+}
+
+void Individual::insert_dna(int index, Polygon *p) {
+    auto it = this->dna->begin();
+    advance(it, index - 1);
+    this->dna->insert(it, p);
+}
+
+void Individual::remove_dna(int index) {
+    auto it = this->dna->begin();
+    advance(it, index);
+    this->dna->erase(it);
 }

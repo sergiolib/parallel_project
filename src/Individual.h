@@ -24,6 +24,8 @@ private:
     Polygon *get_dna(int index);
     void insert_dna(int index, Polygon *p);
     void remove_dna(int index);
+
+    int number_of_vertices;
 };
 
 

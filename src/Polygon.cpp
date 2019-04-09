@@ -2,6 +2,7 @@
 // Created by sliberman on 4/5/19.
 //
 
+#include <values.h>
 #include "utils.h"
 #include "Polygon.h"
 #include "Colour.h"
@@ -38,7 +39,47 @@ void Polygon::add_point(Point *point) {
 }
 
 void Polygon::move(int max_x, int max_y) {
+    int ne_x = 0;
+    int ne_y = MAXINT;
+    int sw_x = MAXINT;
+    int sw_y = 0;
 
+    int len = this->get_points_length();
+    for (int i = 0; i < len; ++i) {
+        Point *vertice = this->get_point(i);
+        int x = vertice->get_x();
+        int y = vertice->get_y();
+
+        if (x > ne_x) {
+            ne_x = x;
+        }
+        if (x < sw_x) {
+            sw_x = x;
+        }
+        if (y < ne_y) {
+            ne_y = y;
+        }
+        if (y > sw_y) {
+            sw_y = y;
+        }
+    }
+
+    int w = ne_x - sw_x;
+    int h = sw_y - ne_y;
+
+    int ne_x_new = w + utils::nextInt(max_x - w);
+    int ne_y_new = utils::nextInt(max_y - h);
+
+    int delta_x = ne_x_new - ne_x;
+    int delta_y = ne_y_new - ne_y;
+
+    for (int i = 0; i < len; ++i) {
+        Point *vertice = this->get_point(i);
+        vertice->set_x(vertice->get_x() + delta_x);
+        vertice->set_y(vertice->get_y() + delta_y);
+    }
+
+    this->get_point()
 }
 
 Point *Polygon::get_point(int index) {

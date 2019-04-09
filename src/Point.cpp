@@ -16,3 +16,11 @@ void Point::set_x(int x) {
 void Point::set_y(int y) {
     this->y = y;
 }
+
+int Point::get_x() {
+    return this->x;
+}
+
+int Point::get_y() {
+    return this->y;
+}

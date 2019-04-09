@@ -10,7 +10,9 @@ class Point {
 public:
     Point(int x, int y);
     void set_x(int x);
+    int get_x();
     void set_y(int y);
+    int get_y();
 private:
     int x;
     int y;
