@@ -21,8 +21,8 @@ Polygon *Polygon::random_polygon(int numberOfVertices, int maxX, int maxY) {
     Polygon *poly = new Polygon(new Colour(r, g, b, a));
 
     for (int i = 0; i < numberOfVertices; ++i) {
-        int x = utils::nextInt(maxX);
-        int y = utils::nextInt(maxY);
+        int x = utils::next_int(maxX);
+        int y = utils::next_int(maxY);
         poly->add_point(new Point(x, y));
     }
 
@@ -67,8 +67,8 @@ void Polygon::move(int max_x, int max_y) {
     int w = ne_x - sw_x;
     int h = sw_y - ne_y;
 
-    int ne_x_new = w + utils::nextInt(max_x - w);
-    int ne_y_new = utils::nextInt(max_y - h);
+    int ne_x_new = w + utils::next_int(max_x - w);
+    int ne_y_new = utils::next_int(max_y - h);
 
     int delta_x = ne_x_new - ne_x;
     int delta_y = ne_y_new - ne_y;
@@ -93,7 +93,7 @@ int Polygon::get_points_length() {
 void Polygon::remove_point() {
     int len = this->points->size();
     if (len > 3) {
-        auto it = next(this->points->begin(), utils::nextInt(len - 1));
+        auto it = next(this->points->begin(), utils::next_int(len - 1));
         this->points->erase(it);
     }
 }

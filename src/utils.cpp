@@ -8,7 +8,7 @@ using namespace std;
 
 #include "utils.h"
 
-int utils::nextInt(int n) {
+int utils::next_int(int n) {
     /*
      * Get a random number up until n.
      */

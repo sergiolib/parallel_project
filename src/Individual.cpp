@@ -27,7 +27,7 @@ void Individual::mutate() {
     list<Polygon *> *dna = this->dna;
     int len = dna->size();
 
-    int idx1 = utils::nextInt(len - 1);
+    int idx1 = utils::next_int(len - 1);
     Polygon *poly = this->get_dna(idx1);
     double r = utils::random();
 
@@ -46,11 +46,11 @@ void Individual::mutate() {
         if (r < 0.675) {
             poly->move(this->max_x, this->max_y);
         } else {
-            Point *point = poly->get_point(utils::nextInt(poly->get_points_length()));
+            Point *point = poly->get_point(utils::next_int(poly->get_points_length()));
             if (r < 0.7875) {
-                point->set_x(utils::nextInt(this->max_x));
+                point->set_x(utils::next_int(this->max_x));
             } else {
-                point->set_y(utils::nextInt(this->max_y));
+                point->set_y(utils::next_int(this->max_y));
             }
         }
     } else if (r < 0.95) {
@@ -59,8 +59,8 @@ void Individual::mutate() {
         } else {
             int len2 = poly->get_points_length();
             if (len2 < conf::max_number_of_vertices) {
-                poly->insert_point(utils::nextInt(len2),
-                        new Point(utils::nextInt(this->max_x), utils::nextInt(this->max_y)));
+                poly->insert_point(utils::next_int(len2),
+                        new Point(utils::next_int(this->max_x), utils::next_int(this->max_y)));
             }
         }
     } else {
@@ -70,7 +70,7 @@ void Individual::mutate() {
             }
         } else {
             if (len < conf::max_number_of_polygons) {
-                this->insert_dna(utils::nextInt(len),
+                this->insert_dna(utils::next_int(len),
                         Polygon::random_polygon(this->number_of_vertices, max_x, max_y));
             }
         }
