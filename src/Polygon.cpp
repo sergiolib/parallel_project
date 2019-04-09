@@ -13,10 +13,10 @@ Polygon *Polygon::random_polygon(int numberOfVertices, int maxX, int maxY) {
     unsigned char r, g, b;
     double a;
 
-    r = random_colour();
-    g = random_colour();
-    b = random_colour();
-    a = random_alpha();
+    r = Colour::random_colour();
+    g = Colour::random_colour();
+    b = Colour::random_colour();
+    a = Colour::random_alpha();
 
     Polygon* poly = new Polygon(new Colour(r, g, b, a));
 
