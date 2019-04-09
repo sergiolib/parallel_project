@@ -40,3 +40,11 @@ double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_ar
     }
     return 1 - ((double)e1 / (double)(255*3*width*height));
 }
+
+unsigned char *utils::draw_individuals(vector<Individual *> individuals, int width, int height) {
+    auto *res = new unsigned char[width * height];
+    for (auto it = individuals.begin(); it != individuals.end(); ++it) {
+        (*it)->draw(res, width, height);
+    }
+    return res;
+}

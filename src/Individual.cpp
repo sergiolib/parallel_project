@@ -96,3 +96,7 @@ void Individual::remove_dna(int index) {
 int Individual::get_len_dna(){
     return this->dna->size();
 }
+
+void Individual::draw(unsigned char *canvas, int width, int height) {
+    
+}

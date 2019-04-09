@@ -13,13 +13,13 @@ using namespace std;
 
 class Population {
 public:
-    Population(int numberOfIndividuals, int initialNumberOfPolygons, int initialNumberOfVertics, int maxX,
-            int maxY);
-
+    Population(int number_of_individuals, int initial_number_of_polygons,
+            int initial_number_of_vertices, int max_x, int max_y);
+    double max;
+    vector<Individual *> get_individuals();
 
 private:
-    vector<Individual> individuals;
-    int max = 0;
+    vector<Individual *> individuals;
     //auto elite=null;
     int s = 0; //fitness sum - sum ranks
 };

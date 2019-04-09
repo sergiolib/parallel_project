@@ -15,7 +15,7 @@ using namespace cv;
 
 class Problem {
 public:
-    Problem(Mat *img);
+    Problem(Mat *img, int max_epochs);
 private:
     string output_directory;
     GeneticAlgorithm *ga;

@@ -20,6 +20,7 @@ public:
     void remove_dna(int index);
     double fitness;
     int get_len_dna();
+    void draw(unsigned char *canvas, int width, int height);
 
 private:
     list<Polygon *> *dna = new list<Polygon *>();

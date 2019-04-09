@@ -4,7 +4,9 @@
 
 #include "Problem.h"
 
-Problem::Problem(Mat *img) {
+Problem::Problem(Mat *img, int max_epochs) {
     this->img = img;
-    this->ga = new GeneticAlgorithm();
+    Size s = img->size();
+    this->ga = new GeneticAlgorithm(img->data, s.width, s.height);
+    this->ga->evolve(max_epochs);
 }

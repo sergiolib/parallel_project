@@ -6,12 +6,17 @@
 #include "Individual.h"
 
 
-Population::Population( int numberOfIndividuals, int initialNumberOfPolygons, int initialNumberOfVertics, int maxX, int maxY) {
+Population::Population( int number_of_individuals, int initial_number_of_polygons, int initial_number_of_vertices,
+        int max_x, int max_y) {
     int i;
-    for( i = 1; i <= numberOfIndividuals; i++) {
-        Individual *individual;
-        individual = new Individual(initialNumberOfPolygons, initialNumberOfVertics, maxX, maxY);
+    this->max = 0.0;
+    for( i = 1; i <= number_of_individuals; i++) {
+        auto *individual = new Individual(initial_number_of_polygons, initial_number_of_vertices, max_x, max_y);
         this->individuals.push_back(individual);
         this->s += i;
     }
+}
+
+vector<Individual *> Population::get_individuals() {
+    return this->individuals;
 }
