@@ -11,7 +11,7 @@ Population::Population( int numberOfIndividuals, int initialNumberOfPolygons, in
     for( i = 1; i <= numberOfIndividuals; i++) {
         Individual *individual;
         individual = new Individual(initialNumberOfPolygons, initialNumberOfVertics, maxX, maxY);
-        individuals.push_back(individual);
-        s += i;
+        this->individuals.push_back(individual);
+        this->s += i;
     }
 }
