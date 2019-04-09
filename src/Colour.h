@@ -16,6 +16,10 @@ public:
     void set_g(int g);
     void set_b(int b);
     void set_a(double a);
+    int get_r();
+    int get_g();
+    int get_b();
+    double get_a();
 
 private:
     unsigned char r, g, b;

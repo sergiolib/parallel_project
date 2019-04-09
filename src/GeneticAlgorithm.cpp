@@ -21,17 +21,20 @@ GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height)
 
 }
 
+void GeneticAlgorithm::evolve(int max_epochs) {
+    auto *bytes = new unsigned char[this->width * this->height * 4];
+    for (int epoch = 0; epoch < max_epochs; ++epoch) {
+        vector<Individual *> individuals = this->pop->get_individuals();
+        Individual *ind = individuals.back();
+        ind->draw(bytes, width, height);
+
+        double fitness = utils::diff(bytes, this->data, width, height);
+
+    }
+}
 void sortByFitness(vector<Individual *> indArr) {
     sort(indArr.begin(),indArr.end());
 }
-
-/**
- * probabilistically select an individual from the population based on their
- * fitness. this uses rank selection. although could use
- * roulette(indArr, fitnessSum) for roulette wheel selection.
- */
-
-
 vector<Individual*> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
             int numberOfVertices, int maxX,
         int maxY){
