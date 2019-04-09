@@ -21,6 +21,10 @@ public:
     double fitness;
     int get_len_dna();
     void draw(unsigned char *canvas, int width, int height);
+    bool operator < (const Individual& str) const
+    {
+        return (fitness < str.fitness);
+    }
 
 private:
     list<Polygon *> *dna = new list<Polygon *>();
