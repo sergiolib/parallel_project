@@ -17,9 +17,9 @@ class Polygon {
 public:
     Polygon(Colour *colour);
     static Polygon* random_polygon(int numberOfVertices, int maxX, int maxY);
+    Colour *colour;
 
 private:
-    Colour *colour;
     vector<Point> points;
 
     void addPoint(Point point);

@@ -3,7 +3,24 @@
 //
 
 #include "Colour.h"
+#include <random>
+
+using namespace std;
 
 Colour::Colour(unsigned char r, unsigned char g, unsigned char i, double a) {
 
+}
+
+unsigned char Colour::random_colour() {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dis(0, 255);
+    return dis(gen);
+}
+
+double Colour::random_alpha() {
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_real_distribution<> dis(0.0, 1.0);
+    return dis(gen);
 }

@@ -13,10 +13,12 @@ using namespace std;
 
 class Individual {
 public:
-    Individual();
+    Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y, vector<Polygon *> *cloned_polys);
+    void mutate();
 
 private:
-    vector<Polygon> dna;
+    vector<Polygon *> *dna = new vector<Polygon *>();
+    double fitness;
 };
 
 
