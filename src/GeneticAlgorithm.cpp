@@ -110,6 +110,25 @@ GeneticAlgorithm::cloneParents(Individual *par1, Individual *par2, list<Polygon 
         polys2.push_back(new Polygon(par2->get_dna(i)));
     }
 }
+/**
+ * probabilistically select an individual from the population based on their
+ * fitness. this uses rank selection. although could use
+ * roulette(indArr, fitnessSum) for roulette wheel selection.
+ */
+Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSum) {
+    double nSum = 1.0;
+    double r = random();
+    int n = indArr.size();
+    int last = n-1;
+    int i=0;
+    for( i = 0; i < last; i++) {
+        nSum -= n / fitnessSum;
+        n--;
+        if(r >= nSum)
+            return indArr.at(i);
+    }
+    return indArr.at(last);
+}
 
 void GeneticAlgorithm::evolve(int max_epochs) {
     auto *bytes = new unsigned char[this->width * this->height * 4];
@@ -140,7 +159,7 @@ void GeneticAlgorithm::evolve(int max_epochs) {
             sortByFitness(this->pop->get_individuals());
             vector<Individual *> nextGeneration;
             nextGeneration.push_back(this->pop->elite);
-            int i;
+            int i ;
             for (i = 1; i < j; i += 2) {
                 Individual *parent1 = fps(this->pop->get_individuals(), this->pop->s);
                 Individual *parent2 = fps(this->pop->get_individuals(), this->pop->s);
