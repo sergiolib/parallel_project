@@ -17,6 +17,10 @@ Population::Population( int number_of_individuals, int initial_number_of_polygon
     }
 }
 
+void Population::set_individuals(vector<Individual *> ind_vector){
+    this->individuals = ind_vector;
+}
+
 vector<Individual *> Population::get_individuals() {
     return this->individuals;
 }
