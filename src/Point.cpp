@@ -9,12 +9,12 @@ Point::Point(int x, int y) {
     this->y = y;
 }
 
-void Point::set_x(int x) {
-    this->x = x;
+void Point::set_x(int new_x) {
+    this->x = new_x;
 }
 
-void Point::set_y(int y) {
-    this->y = y;
+void Point::set_y(int new_y) {
+    this->y = new_y;
 }
 
 int Point::get_x() {

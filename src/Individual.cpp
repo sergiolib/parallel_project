@@ -19,6 +19,7 @@ Individual::Individual(int number_of_polygons, int number_of_vertices, int max_x
     this->max_x = max_x;
     this->max_y = max_y;
     this->number_of_vertices = number_of_vertices;
+    this->dna = new list<Polygon *>();
     for (int i = 0; i < number_of_polygons; ++i) {
         this->dna->push_back(Polygon::random_polygon(number_of_polygons, max_x, max_y));
     }

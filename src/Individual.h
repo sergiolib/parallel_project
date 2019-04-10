@@ -27,7 +27,7 @@ public:
     }
 
 private:
-    list<Polygon *> *dna = new list<Polygon *>();
+    list<Polygon *> *dna;
 
     int max_x;
     int max_y;

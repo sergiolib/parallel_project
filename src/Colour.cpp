@@ -28,20 +28,20 @@ double Colour::random_alpha() {
     return dis(gen);
 }
 
-void Colour::set_r(int r) {
-    this->r = r;
+void Colour::set_r(int new_r) {
+    this->r = new_r;
 }
 
-void Colour::set_g(int g) {
-    this->g = g;
+void Colour::set_g(int new_g) {
+    this->g = new_g;
 }
 
-void Colour::set_b(int b) {
-    this->b = b;
+void Colour::set_b(int new_b) {
+    this->b = new_b;
 }
 
-void Colour::set_a(double a) {
-    this->a = a;
+void Colour::set_a(double new_a) {
+    this->a = new_a;
 }
 
 int Colour::get_r() {

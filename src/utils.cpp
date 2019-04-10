@@ -46,7 +46,7 @@ bool utils::is_in_polygon(int x, int y, Polygon polygon) {
     int num_points = polygon.get_points_length();
     for (int i = 0, j = num_points - 1; i < num_points; j = i++) {
         Point *p1 = polygon.get_point(i);
-        Point *p2 = i + 1 < num_points ? polygon.get_point(i) : polygon.get_point(0);
+        Point *p2 = polygon.get_point(j);
         if (((p1->get_y() >= y) != (p2->get_y() >= y)) && (x <= (double)(p2->get_x() - p1->get_x()) * (double)(y - p1->get_y()) / (double)(p2->get_y() - p1->get_y()) + p1->get_x())) {
             is_in = !is_in;
         }

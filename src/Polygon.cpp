@@ -18,7 +18,7 @@ Polygon *Polygon::random_polygon(int number_of_vertices, int max_x, int max_y) {
     b = Colour::random_colour();
     a = Colour::random_alpha();
 
-    Polygon *poly = new Polygon(new Colour(r, g, b, a));
+    auto poly = new Polygon(new Colour(r, g, b, a));
 
     for (int i = 0; i < number_of_vertices; ++i) {
         int x = utils::next_int(max_x);
@@ -31,6 +31,7 @@ Polygon *Polygon::random_polygon(int number_of_vertices, int max_x, int max_y) {
 
 Polygon::Polygon(Colour *colour) {
     this->colour = colour;
+    this->points = new list<Point *>();
 }
 
 Polygon::Polygon(Polygon *original) {
