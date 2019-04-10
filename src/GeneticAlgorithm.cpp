@@ -14,13 +14,13 @@
 using namespace std;
 
 GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height) {
-    this->pop = new Population(3, conf::initial_polys, 3, width, height);
+    this->pop = new Population(3, initial_polys, 3, width, height);
     this->data = pixels;
     this->width = width;
     this->height = height;
     this->num_polygons = 1;
     this->indivs = 3;
-    this->polys = conf::initial_polys;
+    this->polys = initial_polys;
     this->vertices = 3;
 }
 
@@ -30,8 +30,8 @@ void sortByFitness(vector<Individual *> indArr) {
 
 vector<Individual *> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
                                             int numberOfVertices, int maxX, int maxY) {
-    double mutationRate = conf::mutation_rate;
-    double crossOverRate = conf::cross_over_rate;
+    double mutationRate = mutation_rate;
+    double crossOverRate = cross_over_rate;
     vector<Individual *> individuals;
 
     list<Polygon *> polys1;

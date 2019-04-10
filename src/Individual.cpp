@@ -60,7 +60,7 @@ void Individual::mutate() {
             poly->remove_point();
         } else {
             int len2 = poly->get_points_length();
-            if (len2 < conf::max_number_of_vertices) {
+            if (len2 < max_number_of_vertices) {
                 poly->insert_point(utils::next_int(len2),
                         new Point(utils::next_int(this->max_x), utils::next_int(this->max_y)));
             }
@@ -71,7 +71,7 @@ void Individual::mutate() {
                 this->remove_dna(idx1);
             }
         } else {
-            if (len < conf::max_number_of_polygons) {
+            if (len < max_number_of_polygons) {
                 this->insert_dna(utils::next_int(len),
                         Polygon::random_polygon(this->number_of_vertices, max_x, max_y));
             }
