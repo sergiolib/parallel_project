@@ -16,6 +16,7 @@ public:
     vector<Individual *> mate(Individual *ind1, Individual *ind2, int numberOfPolygons, int numberOfVertices, int maxX, int maxY);
     void twoPointCrossover(Individual *ind1,Individual *ind2, list<Polygon *> off1, list<Polygon *> off2);
     void evolve(int max_epochs);
+    Individual* fps(vector<Individual *> indArr, double fitnessSum);
 private:
     int indivs;
     int polys ;

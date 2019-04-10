@@ -19,7 +19,7 @@ public:
     vector<Individual *> get_individuals();
     void set_individuals(vector<Individual *> ind_vector);
     Individual *elite = nullptr;
-    int s = 0; //fitness sum - sum ranks
+    double s = 0; //fitness sum - sum ranks
 
 private:
     vector<Individual *> individuals;
