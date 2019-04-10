@@ -31,7 +31,14 @@ Polygon *Polygon::random_polygon(int number_of_vertices, int max_x, int max_y) {
 
 Polygon::Polygon(Colour *colour) {
     this->colour = colour;
+}
 
+Polygon::Polygon(Polygon *original) {
+    this->colour = new Colour(original->colour);
+    this->points = new list<Point *>();
+    for (auto & point : *this->points) {
+        this->points->push_back(new Point(point));
+    }
 }
 
 void Polygon::add_point(Point *point) {
