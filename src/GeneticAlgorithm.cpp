@@ -10,6 +10,7 @@
 #include "conf.h"
 #include <vector>
 #include <algorithm>
+
 using namespace std;
 
 GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height) {
@@ -17,38 +18,40 @@ GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height)
     this->data = pixels;
     this->width = width;
     this->height = height;
-    this->numPolygons = 1;
-
+    this->num_polygons = 1;
+    this->indivs = 3;
+    this->polys = conf::initial_polys;
+    this->vertices = 3;
 }
 
 void sortByFitness(vector<Individual *> indArr) {
-    sort(indArr.begin(),indArr.end());
+    sort(indArr.begin(), indArr.end());
 }
 
 vector<Individual *> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
-        int numberOfVertices, int maxX, int maxY){
+                                            int numberOfVertices, int maxX, int maxY) {
     double mutationRate = conf::mutation_rate;
     double crossOverRate = conf::cross_over_rate;
-    vector<Individual*> individuals;
+    vector<Individual *> individuals;
 
     list<Polygon *> polys1;
     list<Polygon *> polys2;
     double rand = utils::random(); //random number between [0,1)
-    if(rand <= crossOverRate){
+    if (rand <= crossOverRate) {
         twoPointCrossover(ind1, ind2, polys1, polys2);
     } else {
-        cloneParents( ind1, ind2, polys1, polys2);
+        cloneParents(ind1, ind2, polys1, polys2);
     }
 
-    Individual *offspring1 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys1);
-    Individual *offspring2 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys2);
+    auto *offspring1 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys1);
+    auto *offspring2 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys2);
 
     rand = utils::random();
-    if(rand <= mutationRate) {
+    if (rand <= mutationRate) {
         offspring1->mutate();
     }
     rand = utils::random();
-    if(rand <= mutationRate)  {
+    if (rand <= mutationRate) {
         offspring2->mutate();
     }
     individuals.push_back(offspring1);
@@ -58,7 +61,7 @@ vector<Individual *> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, 
 }
 
 void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
-        list<Polygon *> off1, list<Polygon *> off2) {
+                                         list<Polygon *> off1, list<Polygon *> off2) {
 
     Individual par1 = *ind1; //here it was ind1.dna
     Individual par2 = *ind2; //here it was ind2.dna
@@ -67,30 +70,30 @@ void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
 
     int max = par1.get_len_dna() < par2.get_len_dna() ? par1.get_len_dna() : par2.get_len_dna();
 
-    int r1 = utils::next_int(max-1);
-    int r2 = utils::next_int(max-1);
+    int r1 = utils::next_int(max - 1);
+    int r2 = utils::next_int(max - 1);
     int i1 = std::min(r1, r2);
     int i2 = std::max(r1, r2);
     int i = 0;
-    for( i = 0; i < i1; i++) {
+    for (i = 0; i < i1; i++) {
         off1.push_back(new Polygon(fittest.get_dna(i)));
         off2.push_back(new Polygon(fittest.get_dna(i)));
     }
 
-    vector<Polygon*> clones1;
-    vector<Polygon*> clones2;
+    vector<Polygon *> clones1;
+    vector<Polygon *> clones2;
 
-    for( i = i1; i <= i2; i++) {
+    for (i = i1; i <= i2; i++) {
         clones1.push_back(new Polygon(par2.get_dna(i)));
         clones2.push_back(new Polygon(par1.get_dna(i)));
     }
     int len = clones1.size();
-    for(i = 0; i < len; i++) {
+    for (i = 0; i < len; i++) {
         off1.push_back(clones1[i]);
         off2.push_back(clones2[i]);
     }
 
-    for(i = i2 + 1; i < fittest.get_len_dna(); i++) {
+    for (i = i2 + 1; i < fittest.get_len_dna(); i++) {
         off1.push_back(new Polygon(fittest.get_dna(i)));
         off2.push_back(new Polygon(fittest.get_dna(i)));
     }
@@ -125,25 +128,24 @@ void GeneticAlgorithm::evolve(int max_epochs) {
                 this->pop->elite = ind; //I think this is not used so I commented it
             }
             j++;
-        }
-        else{
-            if(bestInd != nullptr) {
+        } else {
+            if (bestInd != nullptr) {
                 //unsigned char *bestPixels = utils::draw_individuals(this->pop->get_individuals());
                 //
                 int polys_len = bestInd->get_len_dna();
-                if(polys_len != this->numPolygons) {
-                    this->numPolygons = polys_len;
+                if (polys_len != this->num_polygons) {
+                    this->num_polygons = polys_len;
                 }
             }
             sortByFitness(this->pop->get_individuals());
             vector<Individual *> nextGeneration;
             nextGeneration.push_back(this->pop->elite);
-            int i ;
-            for( i = 1; i < j; i += 2) {
-                Individual parent1 = fps(this->pop->get_individuals(), this->pop->s);
-                Individual parent2 = fps(this->pop->get_individuals(), this->pop->s);
-                vector<Individual*> offspring = mate(parent1, parent2, this->numPolygons,
-                                                    this->vertices, this->width, this->height);
+            int i;
+            for (i = 1; i < j; i += 2) {
+                Individual *parent1 = fps(this->pop->get_individuals(), this->pop->s);
+                Individual *parent2 = fps(this->pop->get_individuals(), this->pop->s);
+                vector<Individual *> offspring = mate(parent1, parent2, this->num_polygons,
+                                                      this->vertices, this->width, this->height);
                 nextGeneration.push_back(offspring.at(0));
                 nextGeneration.push_back(offspring.at(1));
             }
