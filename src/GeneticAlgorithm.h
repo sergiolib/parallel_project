@@ -13,8 +13,8 @@
 class GeneticAlgorithm {
 public:
     GeneticAlgorithm(unsigned char *pixels, int width, int height);
-    vector<Individual*> mate(Individual ind1, Individual ind2, int numberOfPolygons, int numberOfVertices, int maxX, int maxY);
-    void twoPointCrossover(Individual ind1,Individual ind2, vector<Polygon>off1, vector<Polygon>off2);
+    vector<Individual *> mate(Individual *ind1, Individual *ind2, int numberOfPolygons, int numberOfVertices, int maxX, int maxY);
+    void twoPointCrossover(Individual *ind1,Individual *ind2, list<Polygon *> off1, list<Polygon *> off2);
     void evolve(int max_epochs);
 private:
     int indivs;

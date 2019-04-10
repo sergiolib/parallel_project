@@ -78,8 +78,6 @@ void Polygon::move(int max_x, int max_y) {
         vertice->set_x(vertice->get_x() + delta_x);
         vertice->set_y(vertice->get_y() + delta_y);
     }
-
-    this->get_point()
 }
 
 Point *Polygon::get_point(int index) {
@@ -87,7 +85,7 @@ Point *Polygon::get_point(int index) {
 }
 
 int Polygon::get_points_length() {
-    return this->points->size()
+    return this->points->size();
 }
 
 void Polygon::remove_point() {

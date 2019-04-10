@@ -22,22 +22,14 @@ GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height)
 }
 
 void GeneticAlgorithm::evolve(int max_epochs) {
-    auto *bytes = new unsigned char[this->width * this->height * 4];
-    for (int epoch = 0; epoch < max_epochs; ++epoch) {
-        vector<Individual *> individuals = this->pop->get_individuals();
-        Individual *ind = individuals.back();
-        ind->draw(bytes, width, height);
 
-        double fitness = utils::diff(bytes, this->data, width, height);
-
-    }
 }
 void sortByFitness(vector<Individual *> indArr) {
     sort(indArr.begin(),indArr.end());
 }
-vector<Individual*> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
-            int numberOfVertices, int maxX,
-        int maxY){
+
+vector<Individual *> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, int numberOfPolygons,
+        int numberOfVertices, int maxX, int maxY){
     double mutationRate = conf::mutation_rate;
     double crossOverRate = conf::cross_over_rate;
     vector<Individual*> individuals;
@@ -46,8 +38,8 @@ vector<Individual*> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, i
     list<Polygon *> polys2;
     double rand = utils::random(); //random number between [0,1)
     if(rand <= crossOverRate){
-        twoPointCrossover( ind1, ind2, polys1, polys2);}
-    else{
+        twoPointCrossover(ind1, ind2, polys1, polys2);
+    } else{
         cloneParents( ind1, ind2, polys1, polys2);}
 
     Individual *offspring1 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys1);
@@ -67,7 +59,8 @@ vector<Individual*> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, i
     return individuals;
 }
 
-void GeneticAlgorithm::twoPointCrossover(Individual *ind1,Individual *ind2, list<Polygon *> off1, list<Polygon *> off2) {
+void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
+        list<Polygon *> off1, list<Polygon *> off2) {
 
     Individual par1 = *ind1; //here it was ind1.dna
     Individual par2 = *ind2; //here it was ind2.dna
@@ -106,17 +99,16 @@ void GeneticAlgorithm::twoPointCrossover(Individual *ind1,Individual *ind2, list
 }
 
 void GeneticAlgorithm::evolve(int max_epochs) {
-    auto *res = new unsigned char[this->width * this->height];
+    auto *bytes = new unsigned char[this->width * this->height * 4];
     Individual *bestInd = nullptr;
     int j = 0;
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
-            res = {0};
+            bytes = {0};
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.back();
-            ind->draw(res, width, height);
+            ind->draw(bytes, width, height);
 
-            unsigned char *bytes = utils::draw_individuals(this->pop->get_individuals());
             double fitness = utils::diff(bytes, this->data, width, height);
             if (fitness > this->pop->max) {
                 bestInd = ind;
