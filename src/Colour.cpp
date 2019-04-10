@@ -7,8 +7,11 @@
 
 using namespace std;
 
-Colour::Colour(unsigned char r, unsigned char g, unsigned char i, double a) {
-
+Colour::Colour(unsigned char r, unsigned char g, unsigned char b, double a) {
+    this->r = r;
+    this->g = g;
+    this->b = b;
+    this->a = a;
 }
 
 unsigned char Colour::random_colour() {
@@ -55,4 +58,11 @@ int Colour::get_g() {
 
 double Colour::get_a() {
     return a;
+}
+
+Colour::Colour(Colour *original) {
+    this->r = original->r;
+    this->g = original->g;
+    this->b = original->b;
+    this->a = original->a;
 }

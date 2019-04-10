@@ -10,6 +10,7 @@ class Colour {
 
 public:
     Colour(unsigned char r, unsigned char g, unsigned char i, double a);
+    Colour(Colour *original);
     static unsigned char random_colour();
     static double random_alpha();
     void set_r(int r);

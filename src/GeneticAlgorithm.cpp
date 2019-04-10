@@ -21,9 +21,6 @@ GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height)
 
 }
 
-void GeneticAlgorithm::evolve(int max_epochs) {
-
-}
 void sortByFitness(vector<Individual *> indArr) {
     sort(indArr.begin(),indArr.end());
 }
@@ -39,8 +36,9 @@ vector<Individual *> GeneticAlgorithm::mate(Individual *ind1, Individual *ind2, 
     double rand = utils::random(); //random number between [0,1)
     if(rand <= crossOverRate){
         twoPointCrossover(ind1, ind2, polys1, polys2);
-    } else{
-        cloneParents( ind1, ind2, polys1, polys2);}
+    } else {
+        cloneParents( ind1, ind2, polys1, polys2);
+    }
 
     Individual *offspring1 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys1);
     Individual *offspring2 = new Individual(numberOfPolygons, numberOfVertices, maxX, maxY, &polys2);
@@ -75,16 +73,16 @@ void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
     int i2 = std::max(r1, r2);
     int i = 0;
     for( i = 0; i < i1; i++) {
-        off1.push_back(clonePoly(fittest.get_dna(i)));
-        off2.push_back(clonePoly(fittest.get_dna(i)));
+        off1.push_back(new Polygon(fittest.get_dna(i)));
+        off2.push_back(new Polygon(fittest.get_dna(i)));
     }
 
     vector<Polygon*> clones1;
     vector<Polygon*> clones2;
 
     for( i = i1; i <= i2; i++) {
-        clones1.push_back(clonePoly(par2.get_dna(i)));
-        clones2.push_back(clonePoly(par1.get_dna(i)));
+        clones1.push_back(new Polygon(par2.get_dna(i)));
+        clones2.push_back(new Polygon(par1.get_dna(i)));
     }
     int len = clones1.size();
     for(i = 0; i < len; i++) {
@@ -93,8 +91,20 @@ void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
     }
 
     for(i = i2 + 1; i < fittest.get_len_dna(); i++) {
-        off1.push_back(clonePoly(fittest.get_dna(i)));
-        off2.push_back(clonePoly(fittest.get_dna(i)));
+        off1.push_back(new Polygon(fittest.get_dna(i)));
+        off2.push_back(new Polygon(fittest.get_dna(i)));
+    }
+}
+
+void
+GeneticAlgorithm::cloneParents(Individual *par1, Individual *par2, list<Polygon *> polys1, list<Polygon *> polys2) {
+    int len = par1->get_len_dna();
+    for (int i = 0; i < len; ++i) {
+        polys1.push_back(new Polygon(par1->get_dna(i)));
+    }
+    len = par2->get_len_dna();
+    for (int i = 0; i < len; ++i) {
+        polys2.push_back(new Polygon(par2->get_dna(i)));
     }
 }
 
@@ -104,7 +114,6 @@ void GeneticAlgorithm::evolve(int max_epochs) {
     int j = 0;
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
-            bytes = {0};
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.back();
             ind->draw(bytes, width, height);

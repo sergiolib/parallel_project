@@ -24,3 +24,8 @@ int Point::get_x() {
 int Point::get_y() {
     return this->y;
 }
+
+Point::Point(Point *original) {
+    this->x = original->x;
+    this->y = original->y;
+}
