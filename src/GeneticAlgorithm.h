@@ -18,6 +18,7 @@ public:
     Individual *evolve(int max_epochs);
     static Individual* fps(vector<Individual *> indArr, double fitnessSum);
     static void cloneParents(Individual *par1, Individual *par2, list<Polygon *> *polys1, list<Polygon *> *polys2);
+    void clean_population();
 private:
     int indivs;
     int polys ;

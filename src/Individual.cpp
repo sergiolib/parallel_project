@@ -169,3 +169,9 @@ Individual::Individual(Individual *original) {
     this->number_of_vertices = original->number_of_vertices;
     this->fitness = 0;
 }
+
+Individual::~Individual() {
+    for (auto & polygon : *this->polygons) {
+        delete polygon;
+    }
+}

@@ -169,10 +169,23 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
                         max_number_of_vertices, this->width, this->height);
                 nextGeneration.push_back(new Individual(offspring->at(0)));
                 nextGeneration.push_back(new Individual(offspring->at(1)));
+                for (auto & k : *offspring) {
+                    delete k;
+                }
             }
             this->pop->set_individuals(nextGeneration);
         }
 
     }
+    free(bytes);
+    bestInd = new Individual(bestInd);
+    clean_population();
     return bestInd;
+}
+
+void GeneticAlgorithm::clean_population() {
+    vector<Individual *> individuals = this->pop->get_individuals();
+    for (auto & individual : individuals) {
+        delete individual;
+    }
 }

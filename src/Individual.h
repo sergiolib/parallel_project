@@ -13,6 +13,7 @@ using namespace std;
 class Individual {
 public:
     explicit Individual(Individual *original);
+    ~Individual();
     Individual(int number_of_vertices, int max_x, int max_y, list<Polygon *> *cloned_polys);
     Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y);
     void mutate();
