@@ -11,7 +11,7 @@ Population::Population( int number_of_individuals, int initial_number_of_polygon
     int i;
     this->max = 0.0;
     for( i = 1; i <= number_of_individuals; i++) {
-        auto *individual = new Individual(initial_number_of_polygons, initial_number_of_vertices, max_x, max_y);
+        auto individual = new Individual(initial_number_of_polygons, initial_number_of_vertices, max_x, max_y);
         this->individuals.push_back(individual);
         this->s += i;
     }

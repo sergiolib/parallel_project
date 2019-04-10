@@ -28,7 +28,7 @@ double utils::random() {
 
 double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_arr_b, int width, int height) {
     int e1 = 0;
-    int len = width * height;
+    int len = width * height * 4;
     for (int i = 0; i < len; i += 4) {
         int off1 = i + 1, off2 = i + 2;
         int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2];
@@ -38,7 +38,7 @@ double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_ar
         int b_delta = b_a - b_b;
         e1 += abs(r_delta) + abs(g_delta) + abs(b_delta);
     }
-    return 1 - ((double)e1 / (double)(255*3*width*height));
+    return 1 - ((double)e1 / (double)(255*4*width*height));
 }
 
 bool utils::is_in_polygon(int x, int y, Polygon polygon) {
@@ -47,7 +47,9 @@ bool utils::is_in_polygon(int x, int y, Polygon polygon) {
     for (int i = 0, j = num_points - 1; i < num_points; j = i++) {
         Point *p1 = polygon.get_point(i);
         Point *p2 = polygon.get_point(j);
-        if (((p1->get_y() >= y) != (p2->get_y() >= y)) && (x <= (double)(p2->get_x() - p1->get_x()) * (double)(y - p1->get_y()) / (double)(p2->get_y() - p1->get_y()) + p1->get_x())) {
+        if( ( (p1->get_y() >= y ) != (p2->get_y() >= y) ) &&
+            (x <= (p2->get_x() - p1->get_x()) * (y - p1->get_y()) / (p2->get_y() - p1->get_y()) + p1->get_x())
+                ) {
             is_in = !is_in;
         }
     }

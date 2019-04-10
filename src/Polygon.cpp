@@ -3,6 +3,7 @@
 //
 
 #include <values.h>
+#include <iostream>
 #include "utils.h"
 #include "Polygon.h"
 #include "Colour.h"
@@ -37,7 +38,7 @@ Polygon::Polygon(Colour *colour) {
 Polygon::Polygon(Polygon *original) {
     this->colour = new Colour(original->colour);
     this->points = new list<Point *>();
-    for (auto & point : *this->points) {
+    for (auto & point : *original->points) {
         this->points->push_back(new Point(point));
     }
 }
@@ -85,6 +86,7 @@ void Polygon::move(int max_x, int max_y) {
         Point *vertice = this->get_point(i);
         vertice->set_x(vertice->get_x() + delta_x);
         vertice->set_y(vertice->get_y() + delta_y);
+//        cout << vertice->get_x() << ", " << vertice->get_y() << endl;
     }
 }
 

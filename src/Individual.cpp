@@ -3,15 +3,20 @@
 //
 
 #include <cmath>
+#include <iostream>
 #include "utils.h"
 #include "Individual.h"
 #include "conf.h"
 
-Individual::Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y,
+using namespace std;
+
+Individual::Individual(int number_of_vertices, int max_x, int max_y,
                        list<Polygon *> *cloned_polys) {
     this->max_x = max_x;
     this->max_y = max_y;
-    this->dna = cloned_polys;
+    this->polygons = cloned_polys;
+    this->number_of_vertices = number_of_vertices;
+
 }
 
 
@@ -19,15 +24,14 @@ Individual::Individual(int number_of_polygons, int number_of_vertices, int max_x
     this->max_x = max_x;
     this->max_y = max_y;
     this->number_of_vertices = number_of_vertices;
-    this->dna = new list<Polygon *>();
+    this->polygons = new list<Polygon *>();
     for (int i = 0; i < number_of_polygons; ++i) {
-        this->dna->push_back(Polygon::random_polygon(number_of_polygons, max_x, max_y));
+        this->polygons->push_back(Polygon::random_polygon(number_of_vertices, max_x, max_y));
     }
 }
 
 void Individual::mutate() {
-    list<Polygon *> *dna = this->dna;
-    int len = dna->size();
+    int len = this->polygons->size();
 
     int idx1 = utils::next_int(len - 1);
     Polygon *poly = this->get_dna(idx1);
@@ -48,7 +52,7 @@ void Individual::mutate() {
         if (r < 0.675) {
             poly->move(this->max_x, this->max_y);
         } else {
-            Point *point = poly->get_point(utils::next_int(poly->get_points_length()));
+            Point *point = poly->get_point(utils::next_int(poly->get_points_length() - 1));
             if (r < 0.7875) {
                 point->set_x(utils::next_int(this->max_x));
             } else {
@@ -80,23 +84,23 @@ void Individual::mutate() {
 }
 
 Polygon *Individual::get_dna(int index) {
-    return *next(this->dna->begin(), index);
+    return *next(this->polygons->begin(), index);
 }
 
 void Individual::insert_dna(int index, Polygon *p) {
-    auto it = this->dna->begin();
+    auto it = this->polygons->begin();
     advance(it, index - 1);
-    this->dna->insert(it, p);
+    this->polygons->insert(it, p);
 }
 
 void Individual::remove_dna(int index) {
-    auto it = this->dna->begin();
+    auto it = this->polygons->begin();
     advance(it, index);
-    this->dna->erase(it);
+    this->polygons->erase(it);
 }
 
 int Individual::get_len_dna(){
-    return this->dna->size();
+    return this->polygons->size();
 }
 
 void Individual::draw(unsigned char *canvas, int width, int height) {
@@ -105,11 +109,11 @@ void Individual::draw(unsigned char *canvas, int width, int height) {
     }
 
     Colour *c;
-    for (auto polygon = this->dna->begin(); polygon != this->dna->end(); ++polygon) {
-        c = (*polygon)->colour;
-        for (int k = 0; k < (*polygon)->get_points_length(); ++k) {
-            Point *p1 = (*polygon)->get_point(k);
-            Point *p2 = k + 1 < (*polygon)->get_points_length() ? (*polygon)->get_point(k + 1) : (*polygon)->get_point(0);
+    for (auto & polygon : *this->polygons) {
+        c = polygon->colour;
+        for (int k = 0; k < polygon->get_points_length(); ++k) {
+            Point *p1 = polygon->get_point(k);
+            Point *p2 = k + 1 < polygon->get_points_length() ? polygon->get_point(k + 1) : polygon->get_point(0);
             int x_1 = p1->get_x();
             int x_2 = p2->get_x();
             int y_1 = p1->get_y();
@@ -120,22 +124,48 @@ void Individual::draw(unsigned char *canvas, int width, int height) {
             int m_x = x_1 + x_2 - M_x;
             for (int i = m_x; i < M_x; ++i) {
                 int y = (int)round(m_x * m + b);
-                canvas[(i + y * width) * 3] = c->get_r();
-                canvas[(i + y * width) * 3 + 1] = c->get_b();
-                canvas[(i + y * width) * 3 + 2] = c->get_g();
-                canvas[(i + y * width) * 3 + 3] = (int)round(255 * c->get_a());
+                canvas[(i + y * width) * 4] = c->get_r();
+                canvas[(i + y * width) * 4 + 1] = c->get_g();
+                canvas[(i + y * width) * 4 + 2] = c->get_b();
+                canvas[(i + y * width) * 4 + 3] = (int)round(255 * c->get_a());
             }
         }
 
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                if (utils::is_in_polygon(i, j, **polygon)) {
-                    canvas[(i + j * width) * 3] = c->get_r();
-                    canvas[(i + j * width) * 3 + 1] = c->get_b();
-                    canvas[(i + j * width) * 3 + 2] = c->get_g();
-                    canvas[(i + j * width) * 3 + 3] = (int)round(255 * c->get_a());
+//        int cnt = 0;
+        int min_x_this_pol = width;
+        int max_x_this_pol = 0;
+        int min_y_this_pol = height;
+        int max_y_this_pol = 0;
+
+        for (int k = 0; k < polygon->get_points_length(); ++k) {
+            min_x_this_pol = min(polygon->get_point(k)->get_x(), min_x_this_pol);
+            max_x_this_pol = max(polygon->get_point(k)->get_x(), max_x_this_pol);
+            min_y_this_pol = min(polygon->get_point(k)->get_y(), min_y_this_pol);
+            max_y_this_pol = max(polygon->get_point(k)->get_y(), max_y_this_pol);
+        }
+
+        for (int i = min_x_this_pol; i < max_x_this_pol; i++) {
+            for (int j = min_y_this_pol; j < max_y_this_pol; j++) {
+                if (utils::is_in_polygon(i, j, *polygon)) {
+//                    cnt++;
+                    canvas[(i + j * width) * 4] = c->get_r();
+                    canvas[(i + j * width) * 4 + 1] = c->get_g();
+                    canvas[(i + j * width) * 4 + 2] = c->get_b();
+                    canvas[(i + j * width) * 4 + 3] = (int)round(255 * c->get_a());
                 }
             }
         }
+//        cout << "Counts: " << cnt << endl;
     }
+}
+
+Individual::Individual(Individual *original) {
+    this->max_x = original->max_x;
+    this->max_y = original->max_y;
+    this->polygons = new list<Polygon *>();
+    for (int i = 0; i < original->get_len_dna(); ++i) {
+        this->polygons->push_back(new Polygon(original->get_dna(i)));
+    }
+    this->number_of_vertices = original->number_of_vertices;
+    this->fitness = 0;
 }

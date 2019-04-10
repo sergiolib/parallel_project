@@ -12,7 +12,8 @@ using namespace std;
 
 class Individual {
 public:
-    Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y, list<Polygon *> *cloned_polys);
+    explicit Individual(Individual *original);
+    Individual(int number_of_vertices, int max_x, int max_y, list<Polygon *> *cloned_polys);
     Individual(int number_of_polygons, int number_of_vertices, int max_x, int max_y);
     void mutate();
     Polygon *get_dna(int index);
@@ -27,7 +28,7 @@ public:
     }
 
 private:
-    list<Polygon *> *dna;
+    list<Polygon *> *polygons;
 
     int max_x;
     int max_y;
