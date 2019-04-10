@@ -138,7 +138,7 @@ void GeneticAlgorithm::evolve(int max_epochs) {
                 nextGeneration.push_back(offspring.at(0));
                 nextGeneration.push_back(offspring.at(1));
             }
-            this->pop->individuals = nextGeneration;
+            this->pop->set_individuals(nextGeneration);
         }
 
     }
