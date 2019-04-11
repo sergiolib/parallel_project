@@ -2,6 +2,7 @@
 // Created by sliberman on 4/5/19.
 //
 
+#include <opencv2/opencv.hpp>
 #include <cmath>
 #include <iostream>
 #include "utils.h"
@@ -16,7 +17,7 @@ Individual::Individual(int number_of_vertices, int max_x, int max_y,
     this->max_y = max_y;
     this->polygons = cloned_polys;
     this->number_of_vertices = number_of_vertices;
-
+    this->fitness = 0;
 }
 
 
@@ -28,6 +29,7 @@ Individual::Individual(int number_of_polygons, int number_of_vertices, int max_x
     for (int i = 0; i < number_of_polygons; ++i) {
         this->polygons->push_back(Polygon::random_polygon(number_of_vertices, max_x, max_y));
     }
+    this->fitness = 0;
 }
 
 void Individual::mutate() {
@@ -96,14 +98,16 @@ void Individual::insert_dna(int index, Polygon *p) {
 void Individual::remove_dna(int index) {
     auto it = this->polygons->begin();
     advance(it, index);
+    Polygon *elem = *it;
     this->polygons->erase(it);
+    delete elem;
 }
 
 int Individual::get_len_dna(){
     return this->polygons->size();
 }
 
-void Individual::draw(unsigned char *canvas, int width, int height) {
+void Individual::draw_CPU(unsigned char *canvas, int width, int height) {
     for (int i = 0; i < width * height; ++i) {
         canvas[i] = 0;
     }
@@ -111,27 +115,7 @@ void Individual::draw(unsigned char *canvas, int width, int height) {
     Colour *c;
     for (auto & polygon : *this->polygons) {
         c = polygon->colour;
-        for (int k = 0; k < polygon->get_points_length(); ++k) {
-            Point *p1 = polygon->get_point(k);
-            Point *p2 = k + 1 < polygon->get_points_length() ? polygon->get_point(k + 1) : polygon->get_point(0);
-            int x_1 = p1->get_x();
-            int x_2 = p2->get_x();
-            int y_1 = p1->get_y();
-            int y_2 = p2->get_y();
-            double m = (double)(y_2 - y_1) / (double)(x_2 - x_1);
-            double b = y_2 - m * x_2;
-            int M_x = max(x_1, x_2);
-            int m_x = x_1 + x_2 - M_x;
-            for (int i = m_x; i < M_x; ++i) {
-                int y = (int)round(m_x * m + b);
-                canvas[(i + y * width) * 4] = c->get_r();
-                canvas[(i + y * width) * 4 + 1] = c->get_g();
-                canvas[(i + y * width) * 4 + 2] = c->get_b();
-                canvas[(i + y * width) * 4 + 3] = (int)round(255 * c->get_a());
-            }
-        }
-
-//        int cnt = 0;
+        //        int cnt = 0;
         int min_x_this_pol = width;
         int max_x_this_pol = 0;
         int min_y_this_pol = height;
@@ -148,15 +132,37 @@ void Individual::draw(unsigned char *canvas, int width, int height) {
             for (int j = min_y_this_pol; j < max_y_this_pol; j++) {
                 if (utils::is_in_polygon(i, j, *polygon)) {
 //                    cnt++;
-                    canvas[(i + j * width) * 4] = c->get_r();
-                    canvas[(i + j * width) * 4 + 1] = c->get_g();
-                    canvas[(i + j * width) * 4 + 2] = c->get_b();
-                    canvas[(i + j * width) * 4 + 3] = (int)round(255 * c->get_a());
+                    canvas[(i + j * width) * 3] = (unsigned char)(canvas[(i + j * width) * 3] * (1 - c->get_a())) + (unsigned char)(c->get_r() * c->get_a());
+                    canvas[(i + j * width) * 3 + 1] = (unsigned char)(canvas[(i + j * width) * 3 + 1] * (1 - c->get_a())) + (unsigned char)(c->get_g() * c->get_a());
+                    canvas[(i + j * width) * 3 + 2] = (unsigned char)(canvas[(i + j * width) * 3 + 2] * (1 - c->get_a())) + (unsigned char)(c->get_b() * c->get_a());
                 }
             }
         }
 //        cout << "Counts: " << cnt << endl;
     }
+}
+
+void Individual::draw_CV(unsigned char *canvas, int width, int height) {
+    cv::Mat final_img = cv::Mat(height, width, CV_8UC4, canvas);
+    for (auto & polygon : *this->polygons) {
+        cv::Mat partial_img = cv::Mat(height, width, CV_8UC4, cv::Scalar(0, 0, 0, 0.0));
+        Colour *color = polygon->colour;
+        cv::Scalar color_s = cv::Scalar(color->get_b(), color->get_g(), color->get_r(), color->get_a() * 255);
+        int n_pts[] = {polygon->get_points_length()};
+        cv::Point pts[*n_pts];
+        for (int i = 0; i < *n_pts; ++i) {
+            Point *p = polygon->get_point(i);
+            pts[i] = cv::Point(p->get_x(), p->get_y());
+        }
+        const cv::Point* ppt[1] = {pts};
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+
+        cv::addWeighted(partial_img, color->get_a(), final_img, 1 - color->get_a(), 0, final_img);
+    }
+//    cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
+//    cv::imshow("Hola", final_img);
+//
+//    cv::waitKey(0);
 }
 
 Individual::Individual(Individual *original) {

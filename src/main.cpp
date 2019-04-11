@@ -40,6 +40,11 @@ int main(int argc, char **argv) {
         }
 
         Mat image = imread(file, IMREAD_UNCHANGED);
+//
+//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
+//        cv::imshow("Hola", image);
+
+//        cv::waitKey(0);
 
         /* Problem definition */
         /* 1) */

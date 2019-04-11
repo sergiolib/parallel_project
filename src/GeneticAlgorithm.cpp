@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "Population.h"
 #include "conf.h"
+#include <iostream>
 #include <vector>
 #include <algorithm>
 
@@ -26,6 +27,7 @@ GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height)
 
 void sortByFitness(vector<Individual *> indArr) {
     sort(indArr.begin(), indArr.end());
+    reverse(indArr.begin(), indArr.end());
 }
 
 vector<Individual *> *GeneticAlgorithm::mate(Individual *ind1, Individual *ind2,
@@ -80,8 +82,8 @@ void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
         off2->push_back(new Polygon(fittest.get_dna(i)));
     }
 
-    vector<Polygon *> clones1;
-    vector<Polygon *> clones2;
+    auto clones1 = vector<Polygon *>();
+    auto clones2 = vector<Polygon *>();
 
     for (i = i1; i <= i2; i++) {
         clones1.push_back(new Polygon(par2.get_dna(i)));
@@ -138,7 +140,8 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
-            ind->draw(bytes, width, height);
+            ind->draw_CV(bytes, width, height);
+//            ind->draw_CPU(bytes, width, height);
 
             double fitness = utils::diff(bytes, this->data, width, height);
             if (fitness > this->pop->max) {
@@ -148,6 +151,8 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
             }
 
             ind->fitness = fitness;
+            cout << "Best fitness so far: " << bestInd->fitness << endl;
+
             j++;
         } else {
             if (bestInd != nullptr) {
@@ -159,23 +164,19 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
                 }
             }
             sortByFitness(this->pop->get_individuals());
-            vector<Individual *> nextGeneration;
+            auto nextGeneration = vector<Individual *>();
             nextGeneration.push_back(this->pop->elite);
-            int i ;
-            for (i = 1; i < j; i += 2) {
+            for (int i = 1; i < j; i += 2) {
                 Individual *parent1 = fps(this->pop->get_individuals(), this->pop->s);
                 Individual *parent2 = fps(this->pop->get_individuals(), this->pop->s);
                 auto offspring = mate(parent1, parent2,
                         max_number_of_vertices, this->width, this->height);
-                nextGeneration.push_back(new Individual(offspring->at(0)));
-                nextGeneration.push_back(new Individual(offspring->at(1)));
-                for (auto & k : *offspring) {
-                    delete k;
-                }
+                nextGeneration.push_back(offspring->at(0));
+                nextGeneration.push_back(offspring->at(1));
             }
             this->pop->set_individuals(nextGeneration);
+            j = 0;
         }
-
     }
     free(bytes);
     bestInd = new Individual(bestInd);
