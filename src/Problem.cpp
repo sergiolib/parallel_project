@@ -22,7 +22,7 @@ void Problem::run(Mat *img, int max_epochs) {
 
     Mat result_mat = Mat(s.height, s.width, CV_8UC4, canvas);
 
-    cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
+//    cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
     imwrite("salida.png", result_mat);
 
 //    namedWindow("Display window");

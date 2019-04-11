@@ -147,7 +147,7 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
     for (auto & polygon : *this->polygons) {
         cv::Mat partial_img = cv::Mat(height, width, CV_8UC4, cv::Scalar(0, 0, 0, 0.0));
         Colour *color = polygon->colour;
-        cv::Scalar color_s = cv::Scalar(color->get_b(), color->get_g(), color->get_r(), color->get_a() * 255);
+        cv::Scalar color_s = cv::Scalar(color->get_b(), color->get_g(), color->get_r(), 255);
         int n_pts[] = {polygon->get_points_length()};
         cv::Point pts[*n_pts];
         for (int i = 0; i < *n_pts; ++i) {
@@ -157,12 +157,12 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
         const cv::Point* ppt[1] = {pts};
         cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
 
-        cv::addWeighted(partial_img, color->get_a(), final_img, 1 - color->get_a(), 0, final_img);
-    }
-//    cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
-//    cv::imshow("Hola", final_img);
+        cv::addWeighted(partial_img, color->get_a(), final_img, 1, 0, final_img);
+//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
+//        cv::imshow("Hola", final_img);
 //
-//    cv::waitKey(0);
+//        cv::waitKey(0);
+    }
 }
 
 Individual::Individual(Individual *original) {
