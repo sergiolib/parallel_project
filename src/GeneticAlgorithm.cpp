@@ -65,39 +65,45 @@ vector<Individual *> *GeneticAlgorithm::mate(Individual *ind1, Individual *ind2,
 void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
                                          list<Polygon *> *off1, list<Polygon *> *off2) {
 
-    Individual par1 = *ind1; //here it was ind1.polygons
-    Individual par2 = *ind2; //here it was ind2.polygons
+    Individual *par1 = ind1; //here it was ind1.polygons
+    Individual *par2 = ind2; //here it was ind2.polygons
 
-    Individual fittest = ind1->fitness > ind2->fitness ? par1 : par2;
+    Individual *fittest = ind1->fitness > ind2->fitness ? par1 : par2;
 
-    int max = par1.get_len_dna() < par2.get_len_dna() ? par1.get_len_dna() : par2.get_len_dna();
+    int max = par1->get_len_dna() < par2->get_len_dna() ? par1->get_len_dna() : par2->get_len_dna();
 
     int r1 = utils::next_int(max - 1);
     int r2 = utils::next_int(max - 1);
     int i1 = std::min(r1, r2);
     int i2 = std::max(r1, r2);
-    int i = 0;
-    for (i = 0; i < i1; i++) {
-        off1->push_back(new Polygon(fittest.get_dna(i)));
-        off2->push_back(new Polygon(fittest.get_dna(i)));
+    for (int i = 0; i < i1; i++) {
+        off1->push_back(new Polygon(fittest->get_dna(i)));
+        off2->push_back(new Polygon(fittest->get_dna(i)));
     }
 
     auto clones1 = vector<Polygon *>();
     auto clones2 = vector<Polygon *>();
 
-    for (i = i1; i <= i2; i++) {
-        clones1.push_back(new Polygon(par2.get_dna(i)));
-        clones2.push_back(new Polygon(par1.get_dna(i)));
+    for (int i = i1; i <= i2; i++) {
+        clones1.push_back(new Polygon(par2->get_dna(i)));
+        clones2.push_back(new Polygon(par1->get_dna(i)));
     }
     int len = clones1.size();
-    for (i = 0; i < len; i++) {
-        off1->push_back(clones1[i]);
-        off2->push_back(clones2[i]);
+    for (int i = 0; i < len; i++) {
+        off1->push_back(new Polygon(clones1[i]));
+        off2->push_back(new Polygon(clones2[i]));
     }
 
-    for (i = i2 + 1; i < fittest.get_len_dna(); i++) {
-        off1->push_back(new Polygon(fittest.get_dna(i)));
-        off2->push_back(new Polygon(fittest.get_dna(i)));
+    for (int i = i2 + 1; i < fittest->get_len_dna(); i++) {
+        off1->push_back(new Polygon(fittest->get_dna(i)));
+        off2->push_back(new Polygon(fittest->get_dna(i)));
+    }
+
+    for (auto & p : clones1) {
+        delete p;
+    }
+    for (auto & p : clones2) {
+        delete p;
     }
 }
 
@@ -151,7 +157,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
             }
 
             ind->fitness = fitness;
-            cout << "Best fitness so far: " << bestInd->fitness << endl;
+//            cout << "Best fitness so far: " << bestInd->fitness << endl;
 
             j++;
         } else {
@@ -181,6 +187,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
     free(bytes);
     bestInd = new Individual(bestInd);
     clean_population();
+    cout << "Best fitness: " << bestInd->fitness << endl;
     return bestInd;
 }
 

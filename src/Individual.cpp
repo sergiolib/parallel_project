@@ -173,7 +173,7 @@ Individual::Individual(Individual *original) {
         this->polygons->push_back(new Polygon(original->get_dna(i)));
     }
     this->number_of_vertices = original->number_of_vertices;
-    this->fitness = 0;
+    this->fitness = original->fitness;
 }
 
 Individual::~Individual() {

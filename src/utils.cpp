@@ -31,16 +31,16 @@ double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_ar
     int len = width * height * 4;
     for (int i = 0; i < len; i += 4) {
         int off1 = i + 1, off2 = i + 2, off3 = i + 3;
-        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2], a_a = byte_arr_a[off3];
-//        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2];
-        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2], a_b = byte_arr_a[off3];
-//        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2];
+//        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2], a_a = byte_arr_a[off3];
+        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2];
+//        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2], a_b = byte_arr_a[off3];
+        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2];
         int r_delta = r_a - r_b;
         int g_delta = g_a - g_b;
         int b_delta = b_a - b_b;
-        int a_delta = a_a - a_b;
-        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta) + abs(a_delta);
-//        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta);
+//        int a_delta = a_a - a_b;
+//        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta) + abs(a_delta);
+        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta);
     }
     return 1 - ((double)e1 / (double)(255*4*width*height));
 }
