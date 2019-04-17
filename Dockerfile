@@ -1,9 +1,15 @@
 FROM archlinux/base
 
 # Install dependencies
-RUN pacman -Sy --noconfirm base-devel cmake opencv libglvnd openmpi vtk gtk3 hdf5 glew
+RUN pacman -Sy --noconfirm base-devel
+RUN pacman -Sy --noconfirm cmake
+RUN pacman -Sy --noconfirm opencv
+RUN pacman -Sy --noconfirm libglvnd
+RUN pacman -Sy --noconfirm openmpi
+RUN pacman -Sy --noconfirm vtk
+RUN pacman -Sy --noconfirm gtk3
+RUN pacman -Sy --noconfirm hdf5
+RUN pacman -Sy --noconfirm glew
 
+# Copy source files
 COPY . /GeneticAlgorithm
-RUN mkdir -p /GeneticAlgorithm/build
-RUN cd /GeneticAlgorithm/build && cmake .. && make
-CMD mpirun --allow-run-as-root -np 4 /GeneticAlgorithm/build/ParallelGenetic
