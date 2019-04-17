@@ -48,7 +48,7 @@ void Individual::mutate() {
         } else if (r < 0.3375) {
             colour->set_b(Colour::random_colour());
         } else {
-            colour->set_a(1 - utils::random());
+            colour->set_a(1.0 - utils::random());
         }
     } else if (r < 0.9) {
         if (r < 0.675) {
@@ -108,7 +108,7 @@ int Individual::get_len_dna(){
 }
 
 void Individual::draw_CPU(unsigned char *canvas, int width, int height) {
-    for (int i = 0; i < width * height; ++i) {
+    for (int i = 0; i < width * height * 4; ++i) {
         canvas[i] = 0;
     }
 
@@ -132,9 +132,9 @@ void Individual::draw_CPU(unsigned char *canvas, int width, int height) {
             for (int j = min_y_this_pol; j < max_y_this_pol; j++) {
                 if (utils::is_in_polygon(i, j, *polygon)) {
 //                    cnt++;
-                    canvas[(i + j * width) * 3] = (unsigned char)(canvas[(i + j * width) * 3] * (1 - c->get_a())) + (unsigned char)(c->get_r() * c->get_a());
-                    canvas[(i + j * width) * 3 + 1] = (unsigned char)(canvas[(i + j * width) * 3 + 1] * (1 - c->get_a())) + (unsigned char)(c->get_g() * c->get_a());
-                    canvas[(i + j * width) * 3 + 2] = (unsigned char)(canvas[(i + j * width) * 3 + 2] * (1 - c->get_a())) + (unsigned char)(c->get_b() * c->get_a());
+                    canvas[(i + j * width) * 4] = (unsigned char)(canvas[(i + j * width) * 4] * (1 - c->get_a())) + (unsigned char)(c->get_r() * c->get_a());
+                    canvas[(i + j * width) * 4 + 1] = (unsigned char)(canvas[(i + j * width) * 4 + 1] * (1 - c->get_a())) + (unsigned char)(c->get_g() * c->get_a());
+                    canvas[(i + j * width) * 4 + 2] = (unsigned char)(canvas[(i + j * width) * 4 + 2] * (1 - c->get_a())) + (unsigned char)(c->get_b() * c->get_a());
                 }
             }
         }
@@ -164,7 +164,7 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
 
 //        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
 //        cv::imshow("Hola", final_img);
-//
+
 //        cv::waitKey(0);
     }
 }

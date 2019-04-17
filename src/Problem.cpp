@@ -16,20 +16,17 @@ void Problem::run(Mat *img, int max_epochs) {
     Size s = img->size();
     GeneticAlgorithm ga = GeneticAlgorithm(img->data, s.width, s.height);
     Individual *result = ga.evolve(max_epochs);
-    auto canvas = new unsigned char[s.width * s.height * 4];
 //    result->draw_CPU(canvas, s.width, s.height);
-    result->draw_CV(canvas, s.width, s.height);
+    Mat result_mat = Mat(s.height, s.width, CV_8UC4);
+    result->draw_CV(result_mat.data, s.width, s.height);
 
-    Mat result_mat = Mat(s.height, s.width, CV_8UC4, canvas);
 
-//    cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
-    imwrite("salida.png", result_mat);
+    cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
+    imwrite("output/salida.png", result_mat);
 
 //    namedWindow("Display window");
 //    imshow("Display window", result_mat);
 //
 //    waitKey(0);
 //    destroyAllWindows();
-
-    free(canvas);
 }
