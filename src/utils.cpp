@@ -46,24 +46,35 @@ double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_ar
 }
 
 double utils::diff_parallel(const unsigned char *byte_arr_a, const unsigned char *byte_arr_b, int width, int height) {
+    // Function executed by root
     int rc;
-    int P;
+    int P, rank;
     rc = MPI_Comm_size(MPI_COMM_WORLD, &P);
+    rc = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     int e1 = 0;
     int len = width * height * 4;
-    for (int i = 0; i < len; i += 4) {
-        int off1 = i + 1, off2 = i + 2, off3 = i + 3;
-        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2], a_a = byte_arr_a[off3];
-//        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2];
-        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2], a_b = byte_arr_a[off3];
-//        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2];
-        int r_delta = r_a - r_b;
-        int g_delta = g_a - g_b;
-        int b_delta = b_a - b_b;
-        int a_delta = a_a - a_b;
-        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta) + abs(a_delta);
-//        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta);
+    int len_each = len/P;
+
+    // Send len
+    MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+    auto buf_a = new unsigned char[len_each];
+    MPI_Scatter(byte_arr_a, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
+    auto buf_b = new unsigned char[len_each];
+    MPI_Scatter(byte_arr_b, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
+    for (int i = 0; i < len_each; i++) {
+        e1 += abs(buf_a[i] - buf_b[i]);
     }
+    int sum = 0;
+    MPI_Reduce(&e1, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    delete[] buf_a;
+    delete[] buf_b;
+
+    int end_flag = 0;
+    MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
     return 1 - ((double)e1 / (double)(255*4*width*height));
 }
 

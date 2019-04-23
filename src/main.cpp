@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-//#include "mpi.h"
+#include "mpi.h"
 #include "GeneticAlgorithm.h"
 #include "Problem.h"
 #include <opencv2/opencv.hpp>
@@ -17,8 +17,8 @@ using namespace cv;
 int main(int argc, char **argv) {
     int rank, P, rc;
     rc = MPI_Init(&argc, &argv);
-//    rc = MPI_Comm_size(MPI_COMM_WORLD, &P);
-//    rc = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    rc = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    rc = MPI_Comm_size(MPI_COMM_WORLD, &P);
 
 //    if (rank == 0) {
         /* Rank 0 should load the image */
@@ -26,7 +26,8 @@ int main(int argc, char **argv) {
 //            cerr << "Not enough number of arguments" << endl;
 //            exit(1);
 //        }
-
+    int end_flag = 0;
+    if (rank == 0) {
         String file;
         int max_epochs = 1000;
         for (int i = 1; i < argc; ++i) {
@@ -40,16 +41,42 @@ int main(int argc, char **argv) {
         }
 
         Mat image = imread(file, IMREAD_UNCHANGED);
-//
-//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
-//        cv::imshow("Hola", image);
+    //
+    //        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
+    //        cv::imshow("Hola", image);
 
-//        cv::waitKey(0);
+    //        cv::waitKey(0);
 
         /* Problem definition */
         /* 1) */
         Problem::run(&image, max_epochs);
-//    }
+        end_flag = 1;
+        MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //    }
+    } else {
+        // Process diff
+        // Receive len
+        auto buf_a = new unsigned char[100000];
+        auto buf_b = new unsigned char[100000];
+        while (end_flag == 0) {
+            int len = 0, e1 = 0;
+            MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//        cout << "Received len "<< len << endl;
+
+            int len_each = len / P;
+            MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+            MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
+            for (int i = 0; i < len_each; i++) {
+                e1 += abs(buf_a[i] - buf_b[i]);
+            }
+            MPI_Reduce(&e1, nullptr, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+
+            MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        }
+        delete[] buf_a;
+        delete[] buf_b;
+    }
 
     MPI_Finalize();
 

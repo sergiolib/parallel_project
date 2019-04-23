@@ -149,7 +149,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
             ind->draw_CV(bytes, width, height);
 //            ind->draw_CPU(bytes, width, height);
 
-            double fitness = utils::diff(bytes, this->data, width, height);
+            double fitness = utils::diff_parallel(bytes, this->data, width, height);
             if (fitness > this->pop->max) {
                 bestInd = ind;
                 this->pop->max = fitness;
