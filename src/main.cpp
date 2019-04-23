@@ -41,18 +41,15 @@ int main(int argc, char **argv) {
         }
 
         Mat image = imread(file, IMREAD_UNCHANGED);
-    //
-    //        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
-    //        cv::imshow("Hola", image);
 
-    //        cv::waitKey(0);
-
-        /* Problem definition */
-        /* 1) */
-        Problem::run(&image, max_epochs);
-        end_flag = 1;
-        MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    //    }
+        if(image.data )                              // Check for invalid input
+        {
+            /* Problem definition */
+            /* 1) */
+            Problem::run(&image, max_epochs);
+            end_flag = 1;
+            MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        }
     } else {
         // Process diff
         // Receive len
