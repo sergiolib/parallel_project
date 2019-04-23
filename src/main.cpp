@@ -15,8 +15,8 @@ using namespace cv;
 
 
 int main(int argc, char **argv) {
-//    int rank, P, rc;
-//    rc = MPI_Init(&argc, &argv);
+    int rank, P, rc;
+    rc = MPI_Init(&argc, &argv);
 //    rc = MPI_Comm_size(MPI_COMM_WORLD, &P);
 //    rc = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
         Problem::run(&image, max_epochs);
 //    }
 
-//    MPI_Finalize();
+    MPI_Finalize();
 
     return 0;
 }
