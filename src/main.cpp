@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
             for (int i = 0; i < len_each; i++) {
                 e1 += abs(buf_a[i] - buf_b[i]);
             }
-            MPI_Reduce(&e1, nullptr, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+            MPI_Reduce(&e1, &e1, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         }
         delete[] buf_a;
         delete[] buf_b;

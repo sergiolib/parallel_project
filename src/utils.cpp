@@ -54,6 +54,10 @@ double utils::diff_parallel(const unsigned char *byte_arr_a, const unsigned char
     int len = width * height * 4;
     int len_each = len/P;
 
+    // Wake slaves
+    int flag = 0;
+    MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD)
+
     // Send len
     MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
