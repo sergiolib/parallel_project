@@ -15,10 +15,10 @@ using namespace cv;
 
 
 int main(int argc, char **argv) {
-    int rank, P, rc;
-    rc = MPI_Init(&argc, &argv);
-    rc = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    rc = MPI_Comm_size(MPI_COMM_WORLD, &P);
+    int rank, P;
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &P);
 
 //    if (rank == 0) {
         /* Rank 0 should load the image */
@@ -56,14 +56,13 @@ int main(int argc, char **argv) {
     } else {
         // Process diff
         // Receive len
-        auto buf_a = new unsigned char[100000];
-        auto buf_b = new unsigned char[100000];
+        auto buf_a = new unsigned char[10000000];
+        auto buf_b = new unsigned char[10000000];
         while (end_flag == 0) {
             int len = 0, e1 = 0;
             MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
-//        cout << "Received len "<< len << endl;
-
             int len_each = len / P;
+
             MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
             MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 

@@ -152,7 +152,7 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
         Colour *color = polygon->colour;
         cv::Scalar color_s = cv::Scalar(color->get_b(), color->get_g(), color->get_r());
         int n_pts[] = {polygon->get_points_length()};
-        cv::Point pts[*n_pts];
+        cv::Point *pts = new cv::Point[*n_pts];
         for (int i = 0; i < *n_pts; ++i) {
             Point *p = polygon->get_point(i);
             pts[i] = cv::Point(p->get_x(), p->get_y());
@@ -161,6 +161,8 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
         cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
 
         cv::addWeighted(partial_img, color->get_a(), final_img, 1.0 - color->get_a(), 0.0, final_img);
+
+        delete[] pts;
 
 //        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
 //        cv::imshow("Hola", final_img);

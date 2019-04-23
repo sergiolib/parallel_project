@@ -47,10 +47,9 @@ double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_ar
 
 double utils::diff_parallel(const unsigned char *byte_arr_a, const unsigned char *byte_arr_b, int width, int height) {
     // Function executed by root
-    int rc;
     int P, rank;
-    rc = MPI_Comm_size(MPI_COMM_WORLD, &P);
-    rc = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &P);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     int e1 = 0;
     int len = width * height * 4;
     int len_each = len/P;
