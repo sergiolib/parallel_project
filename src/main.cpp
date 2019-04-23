@@ -58,22 +58,33 @@ int main(int argc, char **argv) {
         auto buf_a = new unsigned char[10000000];
         auto buf_b = new unsigned char[10000000];
         while (true) {
+//            cout << "rank " << rank << ": waiting for flag" << endl;
             MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//            cout << "rank " << rank << ": flag value is " << end_flag << endl;
 
             if (end_flag) {
+//                cout << "rank " << rank << ": finished! with " << end_flag << endl;
                 break;
             }
 
             int len = 0, e1 = 0;
+//            cout << "rank " << rank << ": waiting for len" << endl;
             MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//            cout << "rank " << rank << ": len is " << len << endl;
             int len_each = len / P;
 
+//            cout << "rank " << rank << ": pegado en a?" << endl;
             MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+//            cout << "rank " << rank << ": no pegado en a" << endl;
+//            cout << "rank " << rank << ": pegado en b?" << endl;
             MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+//            cout << "rank " << rank << ": no pegado en b" << endl;
 
             for (int i = 0; i < len_each; i++) {
                 e1 += abs(buf_a[i] - buf_b[i]);
             }
+//            cout << "rank " << rank << ": " << e1 << endl;
+
             MPI_Reduce(&e1, &e1, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
         }
         delete[] buf_a;

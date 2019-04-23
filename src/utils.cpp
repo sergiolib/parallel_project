@@ -56,29 +56,38 @@ double utils::diff_parallel(const unsigned char *byte_arr_a, const unsigned char
 
     // Wake slaves
     int flag = 0;
-    MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD)
+
+//    cout << "rank " << rank << ": waiting for flag" << endl;
+    MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//    cout << "rank: " << rank << ": flag is " << flag << endl;
 
     // Send len
+//    cout << "rank " << rank << ": waiting for len" << endl;
     MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
+//    cout << "rank: " << rank << ": len is " << len << endl;
 
     auto buf_a = new unsigned char[len_each];
+//    cout << "rank: " << rank << ": pegado en a?" << endl;
     MPI_Scatter(byte_arr_a, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+//    cout << "rank: " << rank << ": no pegado en a" << endl;
 
     auto buf_b = new unsigned char[len_each];
+//    cout << "rank: " << rank << ": pegado en b?" << endl;
     MPI_Scatter(byte_arr_b, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+//    cout << "rank: " << rank << ": no pegado en b" << endl;
 
+    int sum = 0;
     for (int i = 0; i < len_each; i++) {
         e1 += abs(buf_a[i] - buf_b[i]);
     }
-    int sum = 0;
+//    cout << "rank " << rank << ": " << e1 << endl;
     MPI_Reduce(&e1, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+//    cout << "Whole sum: " << sum << endl;
 
     delete[] buf_a;
     delete[] buf_b;
 
-    int end_flag = 0;
-    MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    return 1 - ((double)e1 / (double)(255*4*width*height));
+    return 1 - ((double)sum / (double)(255*4*width*height));
 }
 
 bool utils::is_in_polygon(int x, int y, Polygon polygon) {
