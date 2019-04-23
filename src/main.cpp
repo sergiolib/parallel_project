@@ -47,15 +47,23 @@ int main(int argc, char **argv) {
             /* Problem definition */
             /* 1) */
             Problem::run(&image, max_epochs);
-            end_flag = 1;
-            MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+        } else {
+            cout << "Image not found. Exiting." << endl;
         }
+        end_flag = 1;
+        MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
     } else {
         // Process diff
         // Receive len
         auto buf_a = new unsigned char[10000000];
         auto buf_b = new unsigned char[10000000];
-        while (end_flag == 0) {
+        while (true) {
+            MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+            if (end_flag) {
+                break;
+            }
+
             int len = 0, e1 = 0;
             MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
             int len_each = len / P;
@@ -67,8 +75,6 @@ int main(int argc, char **argv) {
                 e1 += abs(buf_a[i] - buf_b[i]);
             }
             MPI_Reduce(&e1, nullptr, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-
-            MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
         }
         delete[] buf_a;
         delete[] buf_b;
