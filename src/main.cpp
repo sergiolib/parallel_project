@@ -129,7 +129,6 @@ int main(int argc, char **argv) {
   //            cerr << "Not enough number of arguments" << endl;
   //            exit(1);
   //        }
-  if (rank == 0) {
     String file;
     int max_epochs = 1000;
     for (int i = 1; i < argc; ++i) {
@@ -141,14 +140,19 @@ int main(int argc, char **argv) {
       }
       i++;
     }
+    bool mpi = false;
+    if (strcmp(argv[0], "mpirun") == 0) {
+        mpi = true;
+    }
 
+  if (!mpi || rank == 0) {
     Mat image = imread(file, IMREAD_UNCHANGED);
 
     if(image.data )                              // Check for invalid input
       {
 	/* Problem definition */
 	/* 1) */
-	Problem::run(&image, max_epochs);
+	Problem::run(&image, max_epochs, mpi);
       } else {
       cout << "Image not found. Exiting." << endl;
     }
@@ -164,12 +168,12 @@ int main(int argc, char **argv) {
       if (check_break()) {
 	break;
       }
-      
+
       // Get image dimensions
       // cout << "rank " << rank << ": waiting for dims" << endl;
       MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
       // cout << "rank " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
-      
+
       int width = dims[0];
       int height = dims[1];
       int len_each = width * height * 4 / P;
@@ -181,7 +185,9 @@ int main(int argc, char **argv) {
     delete[] buf_ind;
   }
 
-  MPI_Finalize();
+  if (mpi) {
+      MPI_Finalize();
+  }
 
   return 0;
 }

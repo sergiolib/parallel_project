@@ -138,7 +138,7 @@ Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSu
     return indArr.at(last);
 }
 
-Individual *GeneticAlgorithm::evolve(int max_epochs) {
+Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     auto bytes = new unsigned char[this->width * this->height * 4];
     Individual *bestInd = nullptr;
     int j = 0;
@@ -148,10 +148,15 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
-            ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
-//            ind->draw_CPU(bytes, NULL, width, height);
+            double fitness;
+            if (use_mpi) {
+                ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
+                fitness = utils::diff_parallel(bytes, this->data, width, height);
+            } else {
+                ind->draw_CV(bytes, width, height);
+                fitness = utils::diff(bytes, this->data, width, height);
+            }
 
-            double fitness = utils::diff_parallel(bytes, this->data, width, height);
             if (fitness > this->pop->max) {
                 bestInd = ind;
                 this->pop->max = fitness;
