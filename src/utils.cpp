@@ -61,11 +61,6 @@ double utils::diff_parallel(const unsigned char *byte_arr_a, const unsigned char
     MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
 //    cout << "rank: " << rank << ": flag is " << flag << endl;
 
-    // Send len
-//    cout << "rank " << rank << ": waiting for len" << endl;
-    MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
-//    cout << "rank: " << rank << ": len is " << len << endl;
-
     auto buf_a = new unsigned char[len_each];
 //    cout << "rank: " << rank << ": pegado en a?" << endl;
     MPI_Scatter(byte_arr_a, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);

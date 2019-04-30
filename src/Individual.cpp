@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <cmath>
 #include <iostream>
+#include "mpi.h"
 #include "utils.h"
 #include "Individual.h"
 #include "conf.h"
@@ -169,6 +170,91 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
 
 //        cv::waitKey(0);
     }
+}
+
+void Individual::draw_CV_parallel(unsigned char *canvas, int width, int height) {
+    int P, rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &P);
+    int dims[2];
+    dims[0] = width;
+    dims[1] = height;
+    int len_each = width * height * 4 / P;
+
+    // Send flag
+    int end_flag = 0;
+    cout << "rank " << rank << ": sending flag" << endl;
+    MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    cout << "rank " << rank << ": flag value is " << end_flag << endl;
+
+    // Send dims
+    cout << "rank " << rank << ": sending dims" << endl;
+    MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
+    cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
+
+    auto buf = new unsigned char[len_each];
+    cout << "rank " << rank << ": sending scattered canvas" << endl;
+    MPI_Scatter(canvas, len_each, MPI_UNSIGNED_CHAR, buf, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    cout << "rank " << rank << ": canvas sent" << endl;
+
+    int offset = height / P * rank;
+    int new_height = height / P;
+
+    for (int j = 0; j < len_each; ++j) {
+        buf[j] = 0;
+    }
+    cv::Mat img = cv::Mat(new_height, width, CV_8UC4, buf);
+
+    // Serialize individuals and send them
+    // Format: [len_arr [n_pts r g b a [px py]...]...]
+
+    int n_polys = this->get_len_dna();
+    int buf_ind[10000];
+
+    int off = 0;
+    for (int k = 0; k < n_polys; ++k) {
+        buf_ind[off++] = this->get_dna(k)->get_points_length();
+        buf_ind[off++] = this->get_dna(k)->colour->get_r();
+        buf_ind[off++] = this->get_dna(k)->colour->get_g();
+        buf_ind[off++] = this->get_dna(k)->colour->get_b();
+        buf_ind[off++] = (int)(255*this->get_dna(k)->colour->get_a());
+        for (int i = 0; i < this->get_dna(k)->get_points_length(); ++i) {
+            buf_ind[off++] = this->get_dna(k)->get_point(i)->get_x();
+            buf_ind[off++] = this->get_dna(k)->get_point(i)->get_y();
+        }
+    }
+
+    cout << "rank " << rank << ": sending ind" << endl;
+    MPI_Bcast(&off, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(buf_ind + 1, off, MPI_INT, 0, MPI_COMM_WORLD);
+    cout << "rank " << rank << ": sent ind" << endl;
+
+    int r, g, b, a, x, y;
+    for (int cur_off = 0; cur_off < off; cur_off++) {
+        cv::Mat partial_img = img.clone();
+        int n_pts[] = {buf_ind[cur_off++]};
+        r = buf_ind[cur_off++];
+        g = buf_ind[cur_off++];
+        b = buf_ind[cur_off++];
+        a = buf_ind[cur_off++];
+        cv::Scalar color_s = cv::Scalar(r, g, b);
+        auto pts = new cv::Point[*n_pts];
+        for (int i = 0; i < *n_pts; ++i) {
+            x = buf_ind[cur_off++];
+            y = buf_ind[cur_off++];
+            pts[i] = cv::Point(x, y + offset);
+        }
+        const cv::Point* ppt[1] = {pts};
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+
+        cv::addWeighted(partial_img, ((double) a) / 255.0, img, 1.0 - ((double) a) / 255.0, 0.0, img);
+
+        delete[] pts;
+
+    }
+    cout << "rank " << rank << ": receiving canvas" << endl;
+    MPI_Gather(buf, len_each, MPI_UNSIGNED_CHAR, canvas, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    cout << "rank " << rank << ": received canvas!" << endl;
 }
 
 Individual::Individual(Individual *original) {

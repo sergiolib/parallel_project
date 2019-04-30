@@ -146,7 +146,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
-            ind->draw_CV(bytes, width, height);
+            ind->draw_CV_parallel(bytes, width, height);
 //            ind->draw_CPU(bytes, width, height);
 
             double fitness = utils::diff_parallel(bytes, this->data, width, height);

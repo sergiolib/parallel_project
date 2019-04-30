@@ -6,6 +6,8 @@
 #include "mpi.h"
 #include "GeneticAlgorithm.h"
 #include "Problem.h"
+#include "Point.h"
+#include "Individual.h"
 #include <opencv2/opencv.hpp>
 
 using namespace std;
@@ -58,6 +60,68 @@ int main(int argc, char **argv) {
         auto buf_a = new unsigned char[10000000];
         auto buf_b = new unsigned char[10000000];
         while (true) {
+            cout << "rank " << rank << ": waiting for flag" << endl;
+            MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            cout << "rank " << rank << ": flag value is " << end_flag << endl;
+
+            if (end_flag) {
+                cout << "rank " << rank << ": finished! with " << end_flag << endl;
+                break;
+            }
+
+            int dims[2];
+            cout << "rank " << rank << ": waiting for dims" << endl;
+            MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
+            cout << "rank " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
+
+            int width = dims[0];
+            int height = dims[1];
+            int len_each = width * height * 4 / P;
+            MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
+            int offset = height / P * rank;
+            int new_height = height / P;
+
+            for (int j = 0; j < len_each; ++j) {
+                buf_a[j] = 0;
+            }
+            cv::Mat img = cv::Mat(new_height, width, CV_8UC4, buf_a);
+
+            unsigned char buf_ind[10000];
+            int off = 0;
+
+            cout << "rank " << rank << ": receiving ind" << endl;
+            MPI_Bcast(&off, 1, MPI_INT, 0, MPI_COMM_WORLD);
+            MPI_Bcast(buf_ind, off, MPI_INT, 0, MPI_COMM_WORLD);
+            cout << "rank " << rank << ": received ind" << endl;
+
+            int r, g, b, a, x, y;
+            int cur_off = 0;
+            while (cur_off < off - 1) {
+                cv::Mat partial_img = img.clone();
+                int n_pts[] = {buf_ind[cur_off++]};
+                r = buf_ind[cur_off++];
+                g = buf_ind[cur_off++];
+                b = buf_ind[cur_off++];
+                a = buf_ind[cur_off++];
+                cv::Scalar color_s = cv::Scalar(r, g, b);
+                auto pts = new cv::Point[*n_pts];
+                for (int i = 0; i < *n_pts; ++i) {
+                    x = buf_ind[cur_off++];
+                    y = buf_ind[cur_off++];
+                    pts[i] = cv::Point(x, y + offset);
+                }
+                cout << "rank " << rank << ": n_pts: " << *n_pts << endl;
+                const cv::Point* ppt[1] = {pts};
+                cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+
+                cv::addWeighted(partial_img, ((double) a) / 255.0, img, 1.0 - ((double) a) / 255.0, 0.0, img);
+
+                delete[] pts;
+
+            }
+            MPI_Gather(buf_a, len_each, MPI_UNSIGNED_CHAR, nullptr, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+
 //            cout << "rank " << rank << ": waiting for flag" << endl;
             MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
 //            cout << "rank " << rank << ": flag value is " << end_flag << endl;
@@ -67,13 +131,9 @@ int main(int argc, char **argv) {
                 break;
             }
 
-            int len = 0, e1 = 0;
-//            cout << "rank " << rank << ": waiting for len" << endl;
-            MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
-//            cout << "rank " << rank << ": len is " << len << endl;
-            int len_each = len / P;
+            int e1 = 0;
 
-//            cout << "rank " << rank << ": pegado en a?" << endl;
+            //          //            cout << "rank " << rank << ": pegado en a?" << endl;
             MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 //            cout << "rank " << rank << ": no pegado en a" << endl;
 //            cout << "rank " << rank << ": pegado en b?" << endl;
