@@ -118,11 +118,6 @@ void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each) {
 }
 
 int main(int argc, char **argv) {
-  int rank, P;
-  MPI_Init(&argc, &argv);
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-  MPI_Comm_size(MPI_COMM_WORLD, &P);
-
   //    if (rank == 0) {
   /* Rank 0 should load the image */
   //        if (argc < 3) {
@@ -143,6 +138,13 @@ int main(int argc, char **argv) {
     bool mpi = false;
     if (strcmp(argv[0], "mpirun") == 0) {
         mpi = true;
+    }
+
+    int rank, P;
+    if (mpi) {
+        MPI_Init(&argc, &argv);
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &P);
     }
 
   if (!mpi || rank == 0) {
