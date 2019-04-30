@@ -24,7 +24,7 @@ public:
     int get_len_dna();
     void draw_CPU(unsigned char *canvas, int width, int height);
     void draw_CV(unsigned char *canvas, int width, int height);
-    void draw_CV_parallel(unsigned char *canvas, int width, int height);
+    void draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height);
     bool operator < (const Individual& str) const
     {
         return (fitness < str.fitness);

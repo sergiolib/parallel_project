@@ -142,12 +142,14 @@ Individual *GeneticAlgorithm::evolve(int max_epochs) {
     auto bytes = new unsigned char[this->width * this->height * 4];
     Individual *bestInd = nullptr;
     int j = 0;
+    unsigned char buf[10000000];
+    int buf_ind[10000];
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
-            ind->draw_CV_parallel(bytes, width, height);
-//            ind->draw_CPU(bytes, width, height);
+            ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
+//            ind->draw_CPU(bytes, NULL, width, height);
 
             double fitness = utils::diff_parallel(bytes, this->data, width, height);
             if (fitness > this->pop->max) {

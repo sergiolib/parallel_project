@@ -172,32 +172,41 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
     }
 }
 
-void Individual::draw_CV_parallel(unsigned char *canvas, int width, int height) {
-    int P, rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+void wake_workers() {
+  // Wake slaves
+  int flag = 0;
+
+  //    cout << "rank " << rank << ": waiting for flag" << endl;
+  MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  //    cout << "rank: " << rank << ": flag is " << flag << endl;
+}
+
+void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height) {
+    int P;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
     int dims[2];
     dims[0] = width;
     dims[1] = height;
-    int len_each = width * height * 4 / P;
+    int whole_len = width * height * 4;
+    int len_each = width * (height / P) * 4;
 
-    // Send flag
-    int end_flag = 0;
-    cout << "rank " << rank << ": sending flag" << endl;
-    MPI_Bcast(&end_flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    cout << "rank " << rank << ": flag value is " << end_flag << endl;
+    wake_workers();
 
     // Send dims
-    cout << "rank " << rank << ": sending dims" << endl;
+    // cout << "rank " << rank << ": sending dims" << endl;
     MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
-    cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
+    // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
 
-    auto buf = new unsigned char[len_each];
-    cout << "rank " << rank << ": sending scattered canvas" << endl;
+    // cout << "rank " << rank << ": sending scattered canvas" << endl;
+    //cout << "1:0 sending " << len_each << endl;
     MPI_Scatter(canvas, len_each, MPI_UNSIGNED_CHAR, buf, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-    cout << "rank " << rank << ": canvas sent" << endl;
+    //cout << "1:0 sent " << len_each << endl;
+    int small = len_each * P;
+    //cout << "2:0 sending " << whole_len - small << endl;
+    MPI_Send(canvas + small, whole_len - small, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD);
+    //cout << "2:0 sent " << whole_len - small << endl;
+    // cout << "rank " << rank << ": canvas sent" << endl;
 
-    int offset = height / P * rank;
     int new_height = height / P;
 
     for (int j = 0; j < len_each; ++j) {
@@ -209,40 +218,40 @@ void Individual::draw_CV_parallel(unsigned char *canvas, int width, int height) 
     // Format: [len_arr [n_pts r g b a [px py]...]...]
 
     int n_polys = this->get_len_dna();
-    int buf_ind[10000];
 
-    int off = 0;
+    int sz_buf_ind = 0;
     for (int k = 0; k < n_polys; ++k) {
-        buf_ind[off++] = this->get_dna(k)->get_points_length();
-        buf_ind[off++] = this->get_dna(k)->colour->get_r();
-        buf_ind[off++] = this->get_dna(k)->colour->get_g();
-        buf_ind[off++] = this->get_dna(k)->colour->get_b();
-        buf_ind[off++] = (int)(255*this->get_dna(k)->colour->get_a());
+        buf_ind[sz_buf_ind++] = this->get_dna(k)->get_points_length();
+        buf_ind[sz_buf_ind++] = this->get_dna(k)->colour->get_r();
+        buf_ind[sz_buf_ind++] = this->get_dna(k)->colour->get_g();
+        buf_ind[sz_buf_ind++] = this->get_dna(k)->colour->get_b();
+        buf_ind[sz_buf_ind++] = (int)(255*this->get_dna(k)->colour->get_a());
         for (int i = 0; i < this->get_dna(k)->get_points_length(); ++i) {
-            buf_ind[off++] = this->get_dna(k)->get_point(i)->get_x();
-            buf_ind[off++] = this->get_dna(k)->get_point(i)->get_y();
+            buf_ind[sz_buf_ind++] = this->get_dna(k)->get_point(i)->get_x();
+            buf_ind[sz_buf_ind++] = this->get_dna(k)->get_point(i)->get_y();
         }
     }
 
-    cout << "rank " << rank << ": sending ind" << endl;
-    MPI_Bcast(&off, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(buf_ind + 1, off, MPI_INT, 0, MPI_COMM_WORLD);
-    cout << "rank " << rank << ": sent ind" << endl;
+    // cout << "rank " << rank << ": sending ind" << endl;
+    MPI_Bcast(&sz_buf_ind, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(buf_ind, sz_buf_ind, MPI_INT, 0, MPI_COMM_WORLD);
+    // cout << "rank " << rank << ": sent ind" << endl;
 
     int r, g, b, a, x, y;
-    for (int cur_off = 0; cur_off < off; cur_off++) {
+    int cur_off = 0;
+    while (cur_off < sz_buf_ind) {
         cv::Mat partial_img = img.clone();
         int n_pts[] = {buf_ind[cur_off++]};
         r = buf_ind[cur_off++];
         g = buf_ind[cur_off++];
         b = buf_ind[cur_off++];
         a = buf_ind[cur_off++];
-        cv::Scalar color_s = cv::Scalar(r, g, b);
+        cv::Scalar color_s = cv::Scalar(b, g, r);
         auto pts = new cv::Point[*n_pts];
         for (int i = 0; i < *n_pts; ++i) {
             x = buf_ind[cur_off++];
             y = buf_ind[cur_off++];
-            pts[i] = cv::Point(x, y + offset);
+            pts[i] = cv::Point(x, y);
         }
         const cv::Point* ppt[1] = {pts};
         cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
@@ -252,9 +261,22 @@ void Individual::draw_CV_parallel(unsigned char *canvas, int width, int height) 
         delete[] pts;
 
     }
-    cout << "rank " << rank << ": receiving canvas" << endl;
-    MPI_Gather(buf, len_each, MPI_UNSIGNED_CHAR, canvas, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-    cout << "rank " << rank << ": received canvas!" << endl;
+    
+    //cv::imwrite("part_" + to_string(0) + ".bmp", img);
+
+    // cout << "rank " << rank << ": receiving canvas" << endl;
+    //cout << "3:0 receiving " << len_each << endl;  
+    MPI_Gather(buf, len_each, MPI_UNSIGNED_CHAR, 
+	       canvas, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    //cout << "3:0 received " << len_each << endl;  
+    MPI_Status status;
+    //cout << "4:0 receiving " << whole_len - small << endl;  
+    MPI_Recv(canvas + small, whole_len - small, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD, &status);
+    //cout << "4:0 received " << whole_len - small << endl;  
+    // cout << "rank " << rank << ": received canvas!" << endl;
+
+    //auto canvas_img = cv::Mat(height, width, CV_8UC4, canvas);
+    //cv::imwrite("full_img.bmp", canvas_img);
 }
 
 Individual::Individual(Individual *original) {
