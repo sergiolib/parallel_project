@@ -142,7 +142,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     auto bytes = new unsigned char[this->width * this->height * 4];
     Individual *bestInd = nullptr;
     int j = 0;
-    unsigned char buf[10000000];
+    unsigned char buf[1000000];
     int buf_ind[10000];
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
