@@ -160,7 +160,7 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
             pts[i] = cv::Point(p->get_x(), p->get_y());
         }
         const cv::Point* ppt[1] = {pts};
-        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_8); // cv::LINE_AA);
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
 
         cv::addWeighted(partial_img, color->get_a(), final_img, 1.0 - color->get_a(), 0.0, final_img);
 
@@ -253,7 +253,7 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
             pts[i] = cv::Point(x, y);
         }
         const cv::Point* ppt[1] = {pts};
-        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_8);
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
 
         cv::addWeighted(partial_img, ((double) a) / 255.0, img, 1.0 - ((double) a) / 255.0, 0.0, img);
 

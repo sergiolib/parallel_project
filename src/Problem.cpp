@@ -18,7 +18,16 @@ void Problem::run(Mat *img, int max_epochs, bool use_mpi) {
     Individual *result = ga.evolve(max_epochs, use_mpi);
 //    result->draw_CPU(canvas, s.width, s.height);
     Mat result_mat = Mat(s.height, s.width, CV_8UC4);
-    result->draw_CV(result_mat.data, s.width, s.height);
+    if (use_mpi) {
+        int len_each = s.height / 4 * s.width * 4;
+        int residual = s.height * s.width * 4 - len_each * 4;
+        auto buf = new unsigned char[len_each + residual];
+        int buf_ind[10000];
+        result->draw_CV_parallel(result_mat.data, buf, buf_ind, s.width, s.height);
+        delete[] buf;
+    } else {
+        result->draw_CV(result_mat.data, s.width, s.height);
+    }
 
 
     cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
