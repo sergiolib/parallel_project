@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <cmath>
 #include <iostream>
+#include <unistd.h>
 #include "mpi.h"
 #include "utils.h"
 #include "Individual.h"
@@ -187,7 +188,14 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     int P;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
     int whole_len = width * height * 4;
-    int len_each = width * (height / P) * 4;
+    int new_height = height / P;
+    int len_each = new_height * width * 4;
+    int residual = whole_len - len_each * P;
+
+//    int i = 1;
+//    while (i == 1) {
+//        sleep(5);
+//    }
 
     wake_workers();
 
@@ -195,13 +203,10 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     //cout << "1:0 sending " << len_each << endl;
     MPI_Scatter(canvas, len_each, MPI_UNSIGNED_CHAR, buf, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
     //cout << "1:0 sent " << len_each << endl;
-    int small = len_each * P;
     //cout << "2:0 sending " << whole_len - small << endl;
-    MPI_Send(canvas + small, whole_len - small, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD);
+    MPI_Send(canvas + len_each * P, residual, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD);
     //cout << "2:0 sent " << whole_len - small << endl;
     // cout << "rank " << rank << ": canvas sent" << endl;
-
-    int new_height = height / P;
 
     for (int j = 0; j < len_each; ++j) {
         buf[j] = 0;
@@ -265,12 +270,12 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     //cout << "3:0 received " << len_each << endl;  
     MPI_Status status;
     //cout << "4:0 receiving " << whole_len - small << endl;  
-    MPI_Recv(canvas + small, whole_len - small, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD, &status);
+    MPI_Recv(canvas + len_each * P, residual, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD, &status);
     //cout << "4:0 received " << whole_len - small << endl;  
     // cout << "rank " << rank << ": received canvas!" << endl;
 
-    auto canvas_img = cv::Mat(height, width, CV_8UC4, canvas);
-    cv::imwrite("full_img_parallel.bmp", canvas_img);
+//    auto canvas_img = cv::Mat(height, width, CV_8UC4, canvas);
+//    cv::imwrite("full_img_parallel.bmp", canvas_img);
 }
 
 Individual::Individual(Individual *original) {

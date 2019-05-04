@@ -10,7 +10,9 @@
 #include "conf.h"
 #include "mpi.h"
 #include <iostream>
+#include <opencv2/opencv.hpp>
 #include <vector>
+#include <unistd.h>
 #include <algorithm>
 
 using namespace std;
@@ -147,26 +149,27 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     int j = 0;
     unsigned char buf[1000000];
     unsigned char buf_b[1000000];
-//    int buf_ind[10000];
+    int buf_ind[100000];
 
-    int rank;
     int dims[2];
     dims[0] = width;
     dims[1] = height;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+    if (use_mpi) {
+        // Send dims
+        // cout << "rank " << rank << ": sending dims" << endl;
+        MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
+        // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
+    }
+
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
             double fitness;//, fitness_2;
             if (use_mpi) {
-                // Send dims
-                // cout << "rank " << rank << ": sending dims" << endl;
-                MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
-                // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
-
-//                ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
-                ind->draw_CV(bytes, width, height);
+                ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
+//                ind->draw_CV(bytes, width, height);
 //                check_equal(bytes_1, bytes_2, 4 * this->width * this->height);
 //                MPI_Finalize();
 //                exit(0);

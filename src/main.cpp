@@ -8,6 +8,7 @@
 #include "Problem.h"
 #include "Point.h"
 #include "Individual.h"
+#include <unistd.h>
 #include <opencv2/opencv.hpp>
 
 using namespace std;
@@ -28,24 +29,25 @@ void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int h
     int offset, new_height;
     new_height = height / P;
     offset = new_height * rank;
+
     if (rank == P - 1) {
         new_height += height % P;
     }
 
-    int len_each = new_height * width * 4;
-    int small = height / P * width * 4;
+    int len_each = height / P * width * 4;
+    int residual = height * width * 4 - len_each * P;
 
     cv::Mat img = cv::Mat(new_height, width, CV_8UC4, buf_a);
 
     // cout << "rank " << rank << ": receiving scattered canvas" << endl;
     //cout << "1:" << rank << " receiving " << small << endl;
-    MPI_Scatter(nullptr, small, MPI_UNSIGNED_CHAR,
-                buf_a, small, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR,
+                buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
     //cout << "1:" << rank << " received " << small << endl;
     if (rank == P - 1) {
         MPI_Status status;
         //cout << "2:" << rank << " receiving " << len_each - small << endl;
-        MPI_Recv(buf_a + small, len_each - small, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD, &status);
+        MPI_Recv(buf_a + len_each, residual, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD, &status);
         //cout << "2:" << rank << " received " << len_each - small << endl;
     }
     // cout << "rank " << rank << ": received scattered canvas" << endl;
@@ -88,39 +90,57 @@ void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int h
 
     // cout << "rank " << rank << ": gathering buffer" << endl;
     //cout << rank << ":3 sending " << small << endl;
-    MPI_Gather(buf_a, small, MPI_UNSIGNED_CHAR, nullptr, small, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    MPI_Gather(buf_a, len_each, MPI_UNSIGNED_CHAR, nullptr, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
     //cout << "3:" << rank << " sent " << small << endl;
     if (rank == P - 1) {
         //cout << "4:" << rank << " sending " << len_each - small << endl;
-        MPI_Send(buf_a + small, len_each - small, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD);
+        MPI_Send(buf_a + len_each, residual, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD);
         //cout << "4:" << rank << " sent " << len_each - small << endl;
     }
     // cout << "rank " << rank << ": gathered buffer" << endl;
 }
 
-void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each, int rank) {
+void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each, int width, int height, int rank, int P) {
     // Process 2: diff
-    int e1 = 0;
+    int got_full = len_each * P;
+    int expected_full = width * height * 4;
+    int residual = expected_full - got_full;
 
+    MPI_Status status;
     //          //            cout << "rank " << rank << ": pegado en a?" << endl;
+
     MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+    if (rank == P - 1) {
+        MPI_Recv(buf_a + len_each, residual, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD, &status);
+    }
     //            cout << "rank " << rank << ": no pegado en a" << endl;
     //            cout << "rank " << rank << ": pegado en b?" << endl;
-    MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+//    MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
+//    if (rank == P - 1) {
+//        MPI_Recv(buf_b + len_each, residual, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD, &status);
+//    }
     //            cout << "rank " << rank << ": no pegado en b" << endl;
 
-//    auto img1 = cv::Mat(366 / 4, 272, CV_8UC4, buf_a);
+//    auto img1 = cv::Mat(height / P, width, CV_8UC4, buf_a);
 //    cv::imwrite("im_a_" + to_string(rank) + ".bmp", img1);
-
-//    auto img2 = cv::Mat(366 / 4, 272, CV_8UC4, buf_b);
+//
+//    auto img2 = cv::Mat(height / P, width, CV_8UC4, buf_b);
 //    cv::imwrite("im_b_" + to_string(rank) + ".bmp", img2);
 
-    for (int i = 0; i < len_each; i++) {
-        e1 += abs(buf_a[i] - buf_b[i]);
+    int last = len_each;
+    if (rank == P - 1) {
+        last += residual;
+    }
+
+    unsigned char *buf_b_piece_start = buf_b + rank * len_each;
+
+    int e1 = 0;
+    for (int i = 0; i < last; i++) {
+        e1 += abs(buf_a[i] - buf_b_piece_start[i]);
     }
     //            cout << "rank " << rank << ": " << e1 << endl;
 
-    MPI_Reduce(&e1, &e1, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    MPI_Reduce(&e1, nullptr, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 }
 
 int main(int argc, char **argv) {
@@ -130,6 +150,7 @@ int main(int argc, char **argv) {
     //            cerr << "Not enough number of arguments" << endl;
     //            exit(1);
     //        }
+
     String file;
     int max_epochs = 1000;
     for (int i = 1; i < argc; ++i) {
@@ -156,8 +177,9 @@ int main(int argc, char **argv) {
         mpi = true;
     }
 
+    Mat image = imread(file, IMREAD_UNCHANGED);
+
     if (!mpi || rank == 0) {
-        Mat image = imread(file, IMREAD_UNCHANGED);
 
         if (image.data) {
             Problem::run(&image, max_epochs, mpi);
@@ -174,34 +196,31 @@ int main(int argc, char **argv) {
         auto buf_a = new unsigned char[10000000];
         auto buf_b = new unsigned char[10000000];
         auto buf_ind = new int[100000];
+
         int dims[2];
+        // Get image dimensions
+        // cout << "rank " << rank << ": waiting for dims" << endl;
+        MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
+        cout << "rank " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
+        int width = dims[0];
+        int height = dims[1];
+        int len_each = height / P * width * 4;
+
         while (true) {
-            // Get image dimensions
-            // cout << "rank " << rank << ": waiting for dims" << endl;
-            MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
-            // cout << "rank " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
-
-            int width = dims[0];
-            int height = dims[1];
-            int len_each = (width * height * 4) / P;
-
-//            if (check_break()) {
-//                break;
-//            }
-
-//            process_draw(rank, buf_a, buf_ind, width, height, P);
+            if (check_break()) {
+                break;
+            }
+            process_draw(rank, buf_a, buf_ind, width, height, P);
 
             if (check_break()) {
                 break;
             }
-
-            process_diff(buf_a, buf_b, len_each, rank);
+            process_diff(buf_a, image.data, len_each, width, height, rank, P);
         }
         delete[] buf_a;
         delete[] buf_b;
         delete[] buf_ind;
     }
-
     if (mpi) {
         MPI_Finalize();
     }
