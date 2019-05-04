@@ -40,23 +40,16 @@ void wake_workers_tmp() {
 double utils::diff(unsigned char *byte_arr_a, unsigned char *byte_arr_b, int width, int height) {
     int e1 = 0;
     int len = width * height * 4;
-    for (int i = 0; i < len; i += 4) {
-        int off1 = i + 1, off2 = i + 2, off3 = i + 3;
-        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2], a_a = byte_arr_a[off3];
-//        int r_a = byte_arr_a[i], g_a = byte_arr_a[off1], b_a = byte_arr_a[off2];
-        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2], a_b = byte_arr_a[off3];
-//        int r_b = byte_arr_b[i], g_b = byte_arr_b[off1], b_b = byte_arr_b[off2];
-        int r_delta = r_a - r_b;
-        int g_delta = g_a - g_b;
-        int b_delta = b_a - b_b;
-        int a_delta = a_a - a_b;
-        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta) + abs(a_delta);
-//        e1 += abs(r_delta) + abs(g_delta) + abs(b_delta);
+    int v1, v2;
+    for (int i = 0; i < len; i++) {
+        v1 = byte_arr_a[i];
+        v2 = byte_arr_b[i];
+        e1 += abs(v1 - v2);
     }
-    return 1 - ((double)e1 / (double)(255*4*width*height));
+    return 1.0 - e1 / (255.0*4.0*width*height);
 }
 
-double utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b, unsigned char *buf_a, unsigned char *buf_b, int width, int height) {
+double utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b, unsigned char *buf_a, int width, int height) {
     // Function executed by root
     int P, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
@@ -109,15 +102,17 @@ double utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b
 //    auto img2 = cv::Mat(height / P, width, CV_8UC4, buf_b);
 //    cv::imwrite("im_b_0.bmp", img2);
 
-    int sum = 0;
+    int sum = 0, v1, v2;
     for (int i = 0; i < len_each; i++) {
-        e1 += abs(buf_a[i] - byte_arr_b[i]);
+        v1 = buf_a[i];
+        v2 = byte_arr_b[i];
+        e1 += abs(v1 - v2);
     }
 //    cout << "rank " << rank << ": " << e1 << endl;
     MPI_Reduce(&e1, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 //    cout << "Whole sum: " << sum << endl;
 
-    return 1 - ((double)sum / (double)(255*4*width*height));
+    return 1.0 - sum / (255.0*4.0*width*height);
 }
 
 bool utils::is_in_polygon(int x, int y, Polygon polygon) {

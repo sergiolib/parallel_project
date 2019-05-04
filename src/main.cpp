@@ -193,18 +193,20 @@ int main(int argc, char **argv) {
     } else {
         // Process diff
         // Receive len
-        auto buf_a = new unsigned char[10000000];
-        auto buf_b = new unsigned char[10000000];
+        Size s = image.size();
+        int width = s.width;
+        int height = s.height;
+        int len_each = height / P * width * 4;
+        int residual = height * width * 4 - len_each * P;
+        auto buf_a = new unsigned char[len_each + residual];
+//        auto buf_b = new unsigned char[10000000];
         auto buf_ind = new int[100000];
 
-        int dims[2];
+//        int dims[2];
         // Get image dimensions
         // cout << "rank " << rank << ": waiting for dims" << endl;
-        MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
-        cout << "rank " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
-        int width = dims[0];
-        int height = dims[1];
-        int len_each = height / P * width * 4;
+//        MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
+//        cout << "rank " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
 
         while (true) {
             if (check_break()) {
@@ -218,7 +220,7 @@ int main(int argc, char **argv) {
             process_diff(buf_a, image.data, len_each, width, height, rank, P);
         }
         delete[] buf_a;
-        delete[] buf_b;
+//        delete[] buf_b;
         delete[] buf_ind;
     }
     if (mpi) {

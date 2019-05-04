@@ -143,24 +143,27 @@ Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSu
 
 Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     auto bytes = new unsigned char[this->width * this->height * 4];
-//    auto bytes_1 = new unsigned char[this->width * this->height * 4];
-//    auto bytes_2 = new unsigned char[this->width * this->height * 4];
     Individual *bestInd = nullptr;
     int j = 0;
-    unsigned char buf[1000000];
-    unsigned char buf_b[1000000];
+    int P;
+    MPI_Comm_size(MPI_COMM_WORLD, &P);
+    auto buf = new unsigned char[this->width * this->height / P * 4];
     int buf_ind[100000];
 
-    int dims[2];
-    dims[0] = width;
-    dims[1] = height;
+//    int dims[2];
+//    dims[0] = width;
+//    dims[1] = height;
 
-    if (use_mpi) {
-        // Send dims
-        // cout << "rank " << rank << ": sending dims" << endl;
-        MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
-        // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
-    }
+//    if (use_mpi) {
+//        // Send dims
+//        // cout << "rank " << rank << ": sending dims" << endl;
+//        MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
+//        // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
+//    }
+
+//    while (j == 0) {
+//        sleep(5);
+//    }
 
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
@@ -169,14 +172,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
             double fitness;//, fitness_2;
             if (use_mpi) {
                 ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
-//                ind->draw_CV(bytes, width, height);
-//                check_equal(bytes_1, bytes_2, 4 * this->width * this->height);
-//                MPI_Finalize();
-//                exit(0);
-                fitness = utils::diff_parallel(bytes, this->data, buf, buf_b, width, height);
-//                cout << "Diff parallel: " << fitness << endl;
-//                fitness_2 = utils::diff(bytes, this->data, width, height);
-//                cout << "Diff serial: " << fitness_2 << endl;
+                fitness = utils::diff_parallel(bytes, this->data, buf, width, height);
             } else {
                 ind->draw_CV(bytes, width, height);
                 fitness = utils::diff(bytes, this->data, width, height);
@@ -217,6 +213,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
         }
     }
     free(bytes);
+    delete[] buf;
     bestInd = new Individual(bestInd);
     clean_population();
     cout << "Best fitness: " << bestInd->fitness << endl;
