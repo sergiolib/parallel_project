@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "Population.h"
 #include "conf.h"
+#include "mpi.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -140,18 +141,39 @@ Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSu
 
 Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     auto bytes = new unsigned char[this->width * this->height * 4];
+//    auto bytes_1 = new unsigned char[this->width * this->height * 4];
+//    auto bytes_2 = new unsigned char[this->width * this->height * 4];
     Individual *bestInd = nullptr;
     int j = 0;
     unsigned char buf[1000000];
-    int buf_ind[10000];
+    unsigned char buf_b[1000000];
+//    int buf_ind[10000];
+
+    int rank;
+    int dims[2];
+    dims[0] = width;
+    dims[1] = height;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
-            double fitness;
+            double fitness;//, fitness_2;
             if (use_mpi) {
-                ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
-                fitness = utils::diff_parallel(bytes, this->data, width, height);
+                // Send dims
+                // cout << "rank " << rank << ": sending dims" << endl;
+                MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
+                // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
+
+//                ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
+                ind->draw_CV(bytes, width, height);
+//                check_equal(bytes_1, bytes_2, 4 * this->width * this->height);
+//                MPI_Finalize();
+//                exit(0);
+                fitness = utils::diff_parallel(bytes, this->data, buf, buf_b, width, height);
+//                cout << "Diff parallel: " << fitness << endl;
+//                fitness_2 = utils::diff(bytes, this->data, width, height);
+//                cout << "Diff serial: " << fitness_2 << endl;
             } else {
                 ind->draw_CV(bytes, width, height);
                 fitness = utils::diff(bytes, this->data, width, height);
@@ -203,4 +225,14 @@ void GeneticAlgorithm::clean_population() {
     for (auto & individual : individuals) {
         delete individual;
     }
+}
+
+void GeneticAlgorithm::check_equal(unsigned char *bytes1, unsigned char *bytes2, int i) {
+    for (int n = 0; n < i; n++) {
+        if (bytes1[n] != bytes2[n]) {
+            cout << "They are different at " << n << "/" << i << "!" << endl;
+            return;
+        }
+    }
+    cout << "They are equal!" << endl;
 }

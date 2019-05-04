@@ -77,7 +77,7 @@ void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int h
         }
         // cout << "rank " << rank << ": n_pts: " << *n_pts << endl;
         const cv::Point *ppt[1] = {pts};
-        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_8);
 
         cv::addWeighted(partial_img, ((double) a) / 255.0, img, 1.0 - ((double) a) / 255.0, 0.0, img);
 
@@ -98,7 +98,7 @@ void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int h
     // cout << "rank " << rank << ": gathered buffer" << endl;
 }
 
-void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each) {
+void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each, int rank) {
     // Process 2: diff
     int e1 = 0;
 
@@ -108,6 +108,12 @@ void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each) {
     //            cout << "rank " << rank << ": pegado en b?" << endl;
     MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
     //            cout << "rank " << rank << ": no pegado en b" << endl;
+
+//    auto img1 = cv::Mat(366 / 4, 272, CV_8UC4, buf_a);
+//    cv::imwrite("im_a_" + to_string(rank) + ".bmp", img1);
+
+//    auto img2 = cv::Mat(366 / 4, 272, CV_8UC4, buf_b);
+//    cv::imwrite("im_b_" + to_string(rank) + ".bmp", img2);
 
     for (int i = 0; i < len_each; i++) {
         e1 += abs(buf_a[i] - buf_b[i]);
@@ -137,15 +143,17 @@ int main(int argc, char **argv) {
         i++;
     }
     bool mpi = false;
-    if (strcmp(argv[0], "mpirun") == 0) {
-        mpi = true;
-    }
 
     int rank, P;
-    if (mpi) {
-        MPI_Init(&argc, &argv);
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &P);
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &P);
+
+    if (P > 1) {
+        if (rank == 0) {
+            cout << "Using MPI!" << endl;
+        }
+        mpi = true;
     }
 
     if (!mpi || rank == 0) {
@@ -168,10 +176,6 @@ int main(int argc, char **argv) {
         auto buf_ind = new int[100000];
         int dims[2];
         while (true) {
-            if (check_break()) {
-                break;
-            }
-
             // Get image dimensions
             // cout << "rank " << rank << ": waiting for dims" << endl;
             MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
@@ -179,9 +183,19 @@ int main(int argc, char **argv) {
 
             int width = dims[0];
             int height = dims[1];
-            int len_each = width * height * 4 / P;
-            process_draw(rank, buf_a, buf_ind, width, height, P);
-            process_diff(buf_a, buf_b, len_each);
+            int len_each = (width * height * 4) / P;
+
+//            if (check_break()) {
+//                break;
+//            }
+
+//            process_draw(rank, buf_a, buf_ind, width, height, P);
+
+            if (check_break()) {
+                break;
+            }
+
+            process_diff(buf_a, buf_b, len_each, rank);
         }
         delete[] buf_a;
         delete[] buf_b;

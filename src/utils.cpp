@@ -2,6 +2,7 @@
 // Created by sliberman on 4/9/19.
 //
 
+#include <opencv2/opencv.hpp>
 #include <random>
 #include "mpi.h"
 
@@ -26,7 +27,16 @@ double utils::random() {
     return dis(gen);
 }
 
-double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_arr_b, int width, int height) {
+void wake_workers_tmp() {
+    // Wake slaves
+    int flag = 0;
+
+    //    cout << "rank " << rank << ": waiting for flag" << endl;
+    MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    //    cout << "rank: " << rank << ": flag is " << flag << endl;
+}
+
+double utils::diff(unsigned char *byte_arr_a, unsigned char *byte_arr_b, int width, int height) {
     int e1 = 0;
     int len = width * height * 4;
     for (int i = 0; i < len; i += 4) {
@@ -45,21 +55,31 @@ double utils::diff(const unsigned char *byte_arr_a, const unsigned char *byte_ar
     return 1 - ((double)e1 / (double)(255*4*width*height));
 }
 
-double utils::diff_parallel(const unsigned char *byte_arr_a, const unsigned char *byte_arr_b, int width, int height) {
+double utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b, unsigned char *buf_a, unsigned char *buf_b, int width, int height) {
     // Function executed by root
     int P, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     int e1 = 0;
     int len = width * height * 4;
-    int len_each = len/P;
+    int len_each = len / P;
+//
+//    cout << "height" << height << endl;
+//    cout << "width" << width << endl;
 
-    auto buf_a = new unsigned char[len_each];
+    wake_workers_tmp();
+
 //    cout << "rank: " << rank << ": pegado en a?" << endl;
+
+//    auto img1 = cv::Mat(height / P, width, CV_8UC4, byte_arr_a);
+//    cv::imwrite("im_a.bmp", img1);
+//
+//    auto img2 = cv::Mat(height / P, width, CV_8UC4, byte_arr_b);
+//    cv::imwrite("im_b.bmp", img2);
+
     MPI_Scatter(byte_arr_a, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 //    cout << "rank: " << rank << ": no pegado en a" << endl;
 
-    auto buf_b = new unsigned char[len_each];
 //    cout << "rank: " << rank << ": pegado en b?" << endl;
     MPI_Scatter(byte_arr_b, len_each, MPI_UNSIGNED_CHAR, buf_b, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
 //    cout << "rank: " << rank << ": no pegado en b" << endl;
@@ -71,9 +91,6 @@ double utils::diff_parallel(const unsigned char *byte_arr_a, const unsigned char
 //    cout << "rank " << rank << ": " << e1 << endl;
     MPI_Reduce(&e1, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 //    cout << "Whole sum: " << sum << endl;
-
-    delete[] buf_a;
-    delete[] buf_b;
 
     return 1 - ((double)sum / (double)(255*4*width*height));
 }

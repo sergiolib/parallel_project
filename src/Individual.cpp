@@ -159,11 +159,13 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
             pts[i] = cv::Point(p->get_x(), p->get_y());
         }
         const cv::Point* ppt[1] = {pts};
-        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_8); // cv::LINE_AA);
 
         cv::addWeighted(partial_img, color->get_a(), final_img, 1.0 - color->get_a(), 0.0, final_img);
 
         delete[] pts;
+
+//        cv::imwrite("full_img_serial.bmp", final_img);
 
 //        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
 //        cv::imshow("Hola", final_img);
@@ -184,18 +186,10 @@ void wake_workers() {
 void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height) {
     int P;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
-    int dims[2];
-    dims[0] = width;
-    dims[1] = height;
     int whole_len = width * height * 4;
     int len_each = width * (height / P) * 4;
 
     wake_workers();
-
-    // Send dims
-    // cout << "rank " << rank << ": sending dims" << endl;
-    MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
-    // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
 
     // cout << "rank " << rank << ": sending scattered canvas" << endl;
     //cout << "1:0 sending " << len_each << endl;
@@ -254,7 +248,7 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
             pts[i] = cv::Point(x, y);
         }
         const cv::Point* ppt[1] = {pts};
-        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_8);
 
         cv::addWeighted(partial_img, ((double) a) / 255.0, img, 1.0 - ((double) a) / 255.0, 0.0, img);
 
@@ -275,8 +269,8 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     //cout << "4:0 received " << whole_len - small << endl;  
     // cout << "rank " << rank << ": received canvas!" << endl;
 
-    //auto canvas_img = cv::Mat(height, width, CV_8UC4, canvas);
-    //cv::imwrite("full_img.bmp", canvas_img);
+    auto canvas_img = cv::Mat(height, width, CV_8UC4, canvas);
+    cv::imwrite("full_img_parallel.bmp", canvas_img);
 }
 
 Individual::Individual(Individual *original) {
