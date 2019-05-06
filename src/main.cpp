@@ -10,6 +10,7 @@
 #include "Individual.h"
 #include <unistd.h>
 #include <opencv2/opencv.hpp>
+#include <ctime>
 
 using namespace std;
 using namespace cv;
@@ -150,6 +151,10 @@ int main(int argc, char **argv) {
     //            cerr << "Not enough number of arguments" << endl;
     //            exit(1);
     //        }
+    clock_t start, end;
+    double cpu_time_used;
+
+    start = clock();
 
     String file;
     int max_epochs = 1000;
@@ -226,6 +231,9 @@ int main(int argc, char **argv) {
     if (mpi) {
         MPI_Finalize();
     }
+    end = clock();
+    cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+    cout << "time spent: " << cpu_time_used << endl;
 
     return 0;
 }
