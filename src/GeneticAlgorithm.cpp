@@ -17,10 +17,11 @@
 
 using namespace std;
 
-GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height) {
+GeneticAlgorithm::GeneticAlgorithm(unsigned char *pixels, int width, int height, int channels) {
     this->data = pixels;
     this->width = width;
     this->height = height;
+    this->channels = channels;
     this->num_polygons = 1;
     this->indivs = 3;
     this->polys = initial_polys;
@@ -142,13 +143,13 @@ Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSu
 }
 
 Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
-    auto bytes = new unsigned char[this->width * this->height * 4];
-//    auto bytes2 = new unsigned char[this->width * this->height * 4];
+    auto bytes = new unsigned char[this->width * this->height * this->channels];
+//    auto bytes2 = new unsigned char[this->width * this->height * this->channels];
     Individual *bestInd = nullptr;
     int j = 0;
     int P;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
-    auto buf = new unsigned char[this->width * this->height / P * 4];
+    auto buf = new unsigned char[this->width * this->height / P * this->channels];
     int buf_ind[100000];
 
 //    int dims[2];
@@ -168,13 +169,16 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
 
 //    int i = 0;
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
+        if ((epoch + 1) % 100 == 0) {
+            cout << "Epoch " << epoch + 1 << endl;
+        }
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
             double fitness;//, fitness_2;
             if (use_mpi) {
 
-                ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
+                ind->draw_CV_parallel(bytes, buf, buf_ind, width, height, channels);
 
 //                ind->draw_CV(bytes2, width, height);
 
@@ -188,11 +192,11 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
 //                    sleep(5);
 //                }
 
-                fitness = utils::diff_parallel(bytes, this->data, buf, width, height);
+                fitness = utils::diff_parallel(bytes, this->data, buf, width, height, channels);
 //                fitness = utils::diff(bytes, this->data, width, height);
             } else {
-                ind->draw_CV(bytes, width, height);
-                fitness = utils::diff(bytes, this->data, width, height);
+                ind->draw_CV(bytes, width, height, channels);
+                fitness = utils::diff(bytes, this->data, width, height, channels);
             }
 
             if (fitness > this->pop->max) {

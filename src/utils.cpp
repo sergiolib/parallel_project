@@ -37,26 +37,26 @@ void wake_workers_tmp() {
     //    cout << "rank: " << rank << ": flag is " << flag << endl;
 }
 
-double utils::diff(unsigned char *byte_arr_a, unsigned char *byte_arr_b, int width, int height) {
+double utils::diff(unsigned char *byte_arr_a, unsigned char *byte_arr_b, int width, int height, int channels) {
     int e1 = 0;
-    int len = width * height * 4;
+    int len = width * height * channels;
     int v1, v2;
     for (int i = 0; i < len; i++) {
         v1 = byte_arr_a[i];
         v2 = byte_arr_b[i];
         e1 += abs(v1 - v2);
     }
-    return 1.0 - e1 / (255.0*4.0*width*height);
+    return 1.0 - e1 / (255.0*channels*width*height);
 }
 
-double utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b, unsigned char *buf_a, int width, int height) {
+double utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b, unsigned char *buf_a, int width, int height, int channels) {
     // Function executed by root
     int P, rank;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     int e1 = 0;
-    int len_each = height / P * width * 4;
-    int residual = height * width * 4 - len_each * P;
+    int len_each = height / P * width * channels;
+    int residual = height * width * channels - len_each * P;
 
 //    int i = 0;
 //    while (i==0) {
@@ -112,7 +112,7 @@ double utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b
     MPI_Reduce(&e1, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 //    cout << "Whole sum: " << sum << endl;
 
-    return 1.0 - sum / (255.0*4.0*width*height);
+    return 1.0 - sum / (255.0*channels*width*height);
 }
 
 bool utils::is_in_polygon(int x, int y, Polygon polygon) {

@@ -22,9 +22,9 @@ public:
     void remove_dna(int index);
     double fitness;
     int get_len_dna();
-    void draw_CPU(unsigned char *canvas, int width, int height);
-    void draw_CV(unsigned char *canvas, int width, int height);
-    void draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height);
+    void draw_CPU(unsigned char *canvas, int width, int height, int channels);
+    void draw_CV(unsigned char *canvas, int width, int height, int channels);
+    void draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height, int channels);
     bool operator < (const Individual& str) const
     {
         return (fitness < str.fitness);

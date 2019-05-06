@@ -12,7 +12,7 @@
 
 class GeneticAlgorithm {
 public:
-    GeneticAlgorithm(unsigned char *pixels, int width, int height);
+    GeneticAlgorithm(unsigned char *pixels, int width, int height, int channels);
     static vector<Individual *> *mate(Individual *ind1, Individual *ind2, int numberOfVertices, int maxX, int maxY);
     static void twoPointCrossover(Individual *ind1,Individual *ind2, list<Polygon *> *off1, list<Polygon *> *off2);
     Individual *evolve(int max_epochs, bool use_mpi);
@@ -27,6 +27,7 @@ private:
     unsigned char *data;
     int width;
     int height;
+    int channels;
     int num_polygons;
 
     void check_equal(unsigned char *bytes1, unsigned char *bytes2, int i);

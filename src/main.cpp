@@ -13,7 +13,6 @@
 #include <ctime>
 
 using namespace std;
-using namespace cv;
 
 void kill_workers() {
     int end_flag = 1;
@@ -26,7 +25,7 @@ int check_break() {
     return flag;
 }
 
-void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int height, int P) {
+void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int height, int channels, int P) {
     int offset, new_height;
     new_height = height / P;
     offset = new_height * rank;
@@ -35,10 +34,15 @@ void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int h
         new_height += height % P;
     }
 
-    int len_each = height / P * width * 4;
-    int residual = height * width * 4 - len_each * P;
+    int len_each = height / P * width * channels;
+    int residual = height * width * channels - len_each * P;
 
-    cv::Mat img = cv::Mat(new_height, width, CV_8UC4, buf_a);
+    cv::Mat img;
+    if (channels == 4) {
+        img = cv::Mat(new_height, width, CV_8UC4, buf_a);
+    } else {
+        img = cv::Mat(new_height, width, CV_8UC3, buf_a);
+    }
 
     // cout << "rank " << rank << ": receiving scattered canvas" << endl;
     //cout << "1:" << rank << " receiving " << small << endl;
@@ -101,10 +105,10 @@ void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int h
     // cout << "rank " << rank << ": gathered buffer" << endl;
 }
 
-void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each, int width, int height, int rank, int P) {
+void process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each, int width, int height, int channels, int rank, int P) {
     // Process 2: diff
     int got_full = len_each * P;
-    int expected_full = width * height * 4;
+    int expected_full = width * height * channels;
     int residual = expected_full - got_full;
 
     MPI_Status status;
@@ -182,12 +186,14 @@ int main(int argc, char **argv) {
         mpi = true;
     }
 
-    Mat image = imread(file, IMREAD_UNCHANGED);
+    cv::Mat image = cv::imread(file, IMREAD_UNCHANGED);
+    int channels = image.channels();
+
 
     if (!mpi || rank == 0) {
 
         if (image.data) {
-            Problem::run(&image, max_epochs, mpi);
+            Problem::run(&image, max_epochs, mpi, channels);
         } else {
             cout << "Image not found. Exiting." << endl;
         }
@@ -201,8 +207,8 @@ int main(int argc, char **argv) {
         Size s = image.size();
         int width = s.width;
         int height = s.height;
-        int len_each = height / P * width * 4;
-        int residual = height * width * 4 - len_each * P;
+        int len_each = height / P * width * channels;
+        int residual = height * width * channels - len_each * P;
         auto buf_a = new unsigned char[len_each + residual];
 //        auto buf_b = new unsigned char[10000000];
         auto buf_ind = new int[100000];
@@ -217,12 +223,12 @@ int main(int argc, char **argv) {
             if (check_break()) {
                 break;
             }
-            process_draw(rank, buf_a, buf_ind, width, height, P);
+            process_draw(rank, buf_a, buf_ind, width, height, channels, P);
 
             if (check_break()) {
                 break;
             }
-            process_diff(buf_a, image.data, len_each, width, height, rank, P);
+            process_diff(buf_a, image.data, len_each, width, height, channels, rank, P);
         }
         delete[] buf_a;
 //        delete[] buf_b;

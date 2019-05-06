@@ -109,8 +109,8 @@ int Individual::get_len_dna(){
     return this->polygons->size();
 }
 
-void Individual::draw_CPU(unsigned char *canvas, int width, int height) {
-    for (int i = 0; i < width * height * 4; ++i) {
+void Individual::draw_CPU(unsigned char *canvas, int width, int height, int channels) {
+    for (int i = 0; i < width * height * channels; ++i) {
         canvas[i] = 0;
     }
 
@@ -134,9 +134,9 @@ void Individual::draw_CPU(unsigned char *canvas, int width, int height) {
             for (int j = min_y_this_pol; j < max_y_this_pol; j++) {
                 if (utils::is_in_polygon(i, j, *polygon)) {
 //                    cnt++;
-                    canvas[(i + j * width) * 4] = (unsigned char)(canvas[(i + j * width) * 4] * (1 - c->get_a())) + (unsigned char)(c->get_r() * c->get_a());
-                    canvas[(i + j * width) * 4 + 1] = (unsigned char)(canvas[(i + j * width) * 4 + 1] * (1 - c->get_a())) + (unsigned char)(c->get_g() * c->get_a());
-                    canvas[(i + j * width) * 4 + 2] = (unsigned char)(canvas[(i + j * width) * 4 + 2] * (1 - c->get_a())) + (unsigned char)(c->get_b() * c->get_a());
+                    canvas[(i + j * width) * channels] = (unsigned char)(canvas[(i + j * width) * channels] * (1 - c->get_a())) + (unsigned char)(c->get_r() * c->get_a());
+                    canvas[(i + j * width) * channels + 1] = (unsigned char)(canvas[(i + j * width) * channels + 1] * (1 - c->get_a())) + (unsigned char)(c->get_g() * c->get_a());
+                    canvas[(i + j * width) * channels + 2] = (unsigned char)(canvas[(i + j * width) * channels + 2] * (1 - c->get_a())) + (unsigned char)(c->get_b() * c->get_a());
                 }
             }
         }
@@ -144,11 +144,16 @@ void Individual::draw_CPU(unsigned char *canvas, int width, int height) {
     }
 }
 
-void Individual::draw_CV(unsigned char *canvas, int width, int height) {
-    for (int j = 0; j < width * height * 4; ++j) {
+void Individual::draw_CV(unsigned char *canvas, int width, int height, int channels) {
+    for (int j = 0; j < width * height * channels; ++j) {
         canvas[j] = 0;
     }
-    cv::Mat final_img = cv::Mat(height, width, CV_8UC4, canvas);
+    cv::Mat final_img;
+    if (channels == 4) {
+        final_img = cv::Mat(height, width, CV_8UC4, canvas);
+    } else {
+        final_img = cv::Mat(height, width, CV_8UC3, canvas);
+    }
     for (auto & polygon : *this->polygons) {
         cv::Mat partial_img = final_img.clone();
         Colour *color = polygon->colour;
@@ -189,12 +194,12 @@ void wake_workers() {
   //    cout << "rank: " << rank << ": flag is " << flag << endl;
 }
 
-void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height) {
+void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height, int channels) {
     int P;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
-    int whole_len = width * height * 4;
+    int whole_len = width * height * channels;
     int new_height = height / P;
-    int len_each = new_height * width * 4;
+    int len_each = new_height * width * channels;
     int residual = whole_len - len_each * P;
 
 //    int i = 1;
@@ -216,7 +221,12 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     //cout << "2:0 sent " << whole_len - small << endl;
     // cout << "rank " << rank << ": canvas sent" << endl;
 
-    cv::Mat img = cv::Mat(new_height, width, CV_8UC4, buf);
+    cv::Mat img;
+    if (channels == 4) {
+        img = cv::Mat(new_height, width, CV_8UC4, buf);
+    } else {
+        img = cv::Mat(new_height, width, CV_8UC3, buf);
+    }
 
     // Serialize individuals and send them
     // Format: [len_arr [n_pts r g b a [px py]...]...]
