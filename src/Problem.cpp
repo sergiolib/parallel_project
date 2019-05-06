@@ -37,7 +37,7 @@ void Problem::run(Mat *img, int max_epochs, bool use_mpi, int channels) {
     if (channels == 4) {
         cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
     }
-    imwrite("output/salida.png", result_mat);
+    imwrite("output/output_file.png", result_mat);
 
 //    namedWindow("Display window");
 //    imshow("Display window", result_mat);
