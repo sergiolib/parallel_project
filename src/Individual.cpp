@@ -160,9 +160,14 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height) {
             pts[i] = cv::Point(p->get_x(), p->get_y());
         }
         const cv::Point* ppt[1] = {pts};
-        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_4);
 
         cv::addWeighted(partial_img, color->get_a(), final_img, 1.0 - color->get_a(), 0.0, final_img);
+
+//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
+//        cv::imshow("Hola", partial_img);
+//
+//        cv::waitKey(0);
 
         delete[] pts;
 
@@ -199,6 +204,9 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
 
     wake_workers();
 
+    for (int j = 0; j < whole_len; ++j) {
+        canvas[j] = 0;
+    }
     // cout << "rank " << rank << ": sending scattered canvas" << endl;
     //cout << "1:0 sending " << len_each << endl;
     MPI_Scatter(canvas, len_each, MPI_UNSIGNED_CHAR, buf, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
@@ -208,9 +216,6 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     //cout << "2:0 sent " << whole_len - small << endl;
     // cout << "rank " << rank << ": canvas sent" << endl;
 
-    for (int j = 0; j < len_each; ++j) {
-        buf[j] = 0;
-    }
     cv::Mat img = cv::Mat(new_height, width, CV_8UC4, buf);
 
     // Serialize individuals and send them
@@ -253,7 +258,12 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
             pts[i] = cv::Point(x, y);
         }
         const cv::Point* ppt[1] = {pts};
-        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_AA);
+        cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_4);
+
+//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
+//        cv::imshow("Hola", partial_img);
+//
+//        cv::waitKey(0);
 
         cv::addWeighted(partial_img, ((double) a) / 255.0, img, 1.0 - ((double) a) / 255.0, 0.0, img);
 

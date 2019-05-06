@@ -143,6 +143,7 @@ Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSu
 
 Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     auto bytes = new unsigned char[this->width * this->height * 4];
+//    auto bytes2 = new unsigned char[this->width * this->height * 4];
     Individual *bestInd = nullptr;
     int j = 0;
     int P;
@@ -165,14 +166,30 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
 //        sleep(5);
 //    }
 
+//    int i = 0;
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
             double fitness;//, fitness_2;
             if (use_mpi) {
+
                 ind->draw_CV_parallel(bytes, buf, buf_ind, width, height);
+
+//                ind->draw_CV(bytes2, width, height);
+
+//                cv::Mat img_parallel = cv::Mat(height, width, CV_8UC4, bytes);
+//                cv::Mat img_serial = cv::Mat(height, width, CV_8UC4, bytes2);
+
+//                cv::imwrite("img_parallel.bmp", img_parallel);
+//                cv::imwrite("img_serial.bmp", img_serial);
+
+//                while (i == 0) {
+//                    sleep(5);
+//                }
+
                 fitness = utils::diff_parallel(bytes, this->data, buf, width, height);
+//                fitness = utils::diff(bytes, this->data, width, height);
             } else {
                 ind->draw_CV(bytes, width, height);
                 fitness = utils::diff(bytes, this->data, width, height);
