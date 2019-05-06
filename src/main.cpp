@@ -233,7 +233,9 @@ int main(int argc, char **argv) {
     }
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
-    cout << "time spent: " << cpu_time_used << endl;
+    if (rank == 0) {
+        cout << "time spent: " << cpu_time_used << endl;
+    }
 
     return 0;
 }
