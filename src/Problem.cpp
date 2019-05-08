@@ -25,8 +25,7 @@ void Problem::run(cv::Mat *img, int max_epochs, bool use_mpi, int channels, stri
         int len_each = s.height / channels * s.width * channels;
         int residual = s.height * s.width * channels - len_each * channels;
         auto buf = new unsigned char[len_each + residual];
-        int buf_ind[10000];
-        result->draw_CV_parallel(result_mat.data, buf, buf_ind, s.width, s.height, channels);
+        result->draw_CV(result_mat.data, s.width, s.height, channels);
         delete[] buf;
     } else {
         result->draw_CV(result_mat.data, s.width, s.height, channels);
