@@ -9,19 +9,18 @@
 #include <iostream>
 #include "Problem.h"
 
-using namespace cv;
 using namespace std;
 
-void Problem::run(Mat *img, int max_epochs, bool use_mpi, int channels, String output_filename) {
-    Size s = img->size();
+void Problem::run(cv::Mat *img, int max_epochs, bool use_mpi, int channels, string output_filename) {
+    cv::Size s = img->size();
     GeneticAlgorithm ga = GeneticAlgorithm(img->data, s.width, s.height, channels);
     Individual *result = ga.evolve(max_epochs, use_mpi);
 //    result->draw_CPU(canvas, s.width, s.height);
-    Mat result_mat;
+    cv::Mat result_mat;
     if (channels == 4) {
-        result_mat = Mat(s.height, s.width, CV_8UC4);
+        result_mat = cv::Mat(s.height, s.width, CV_8UC4);
     } else {
-        result_mat = Mat(s.height, s.width, CV_8UC3);
+        result_mat = cv::Mat(s.height, s.width, CV_8UC3);
     }
     if (use_mpi) {
         int len_each = s.height / channels * s.width * channels;
@@ -35,7 +34,7 @@ void Problem::run(Mat *img, int max_epochs, bool use_mpi, int channels, String o
     }
 
     if (channels == 4) {
-        cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
+        cvtColor(result_mat, result_mat, cv::COLOR_BGRA2BGR);
     }
     imwrite(output_filename, result_mat);
 
