@@ -98,15 +98,14 @@ void process_draw(int rank, unsigned char *buf_a, int *buf_ind, int width, int h
 void
 process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each, int width, int height, int channels, int rank,
              int P) {
+    MPI_Request r1, r2;
+    MPI_Iscatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD, &r1);
     int got_full = len_each * P;
     int expected_full = width * height * channels;
     int residual = expected_full - got_full;
 
-    MPI_Status status;
-
-    MPI_Scatter(nullptr, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
     if (rank == P - 1) {
-        MPI_Recv(buf_a + len_each, residual, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD, &status);
+        MPI_Irecv(buf_a + len_each, residual, MPI_UNSIGNED_CHAR, 0, 123, MPI_COMM_WORLD, &r2);
     }
 
     int last = len_each;
@@ -117,6 +116,12 @@ process_diff(unsigned char *buf_a, unsigned char *buf_b, int len_each, int width
     unsigned char *buf_b_piece_start = buf_b + rank * len_each;
 
     int e1 = 0;
+
+    MPI_Status s;
+    MPI_Wait(&r1, &s);
+    if (rank == P - 1) {
+        MPI_Wait(&r2, &s);
+    }
     for (int i = 0; i < last; i++) {
         e1 += abs(buf_a[i] - buf_b_piece_start[i]);
     }

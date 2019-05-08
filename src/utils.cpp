@@ -53,19 +53,26 @@ utils::diff_parallel(unsigned char *byte_arr_a, unsigned char *byte_arr_b, unsig
     int e1 = 0;
     int t = width * channels;
     int len_each = height / P * t;
+
+    MPI_Request r1, r2;
+    wake_workers_tmp();
+    MPI_Iscatter(byte_arr_a, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD, &r1);
+
     int residual = height * t - len_each * P;
 
-    wake_workers_tmp();
-
-    MPI_Scatter(byte_arr_a, len_each, MPI_UNSIGNED_CHAR, buf_a, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-    MPI_Send(byte_arr_a + len_each * P, residual, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD);
+    MPI_Isend(byte_arr_a + len_each * P, residual, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD, &r2);
 
     int sum = 0, v1, v2;
     for (int i = 0; i < len_each; i++) {
-        v1 = buf_a[i];
+        v1 = byte_arr_a[i];
         v2 = byte_arr_b[i];
         e1 += abs(v1 - v2);
     }
+
+    MPI_Status s;
+    MPI_Wait(&r1, &s);
+    MPI_Wait(&r2, &s);
+
     MPI_Reduce(&e1, &sum, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
     return 1.0 - sum / (255.0 * channels * width * height);
 }
