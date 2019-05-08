@@ -200,6 +200,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     bestInd = new Individual(bestInd);
     clean_population();
     cout << "Best fitness: " << bestInd->fitness << endl;
+    cout << "Num polygons: " << bestInd->get_len_dna() << endl;
     return bestInd;
 }
 
