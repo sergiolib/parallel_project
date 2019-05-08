@@ -1,5 +1,5 @@
 //
-// Created by sliberman on 4/5/19.
+// Created by liberman and ayin on 4/5/19.
 //
 
 #include "GeneticAlgorithm.h"
@@ -35,14 +35,14 @@ void sortByFitness(vector<Individual *> indArr) {
 }
 
 vector<Individual *> *GeneticAlgorithm::mate(Individual *ind1, Individual *ind2,
-                                            int numberOfVertices, int maxX, int maxY) {
+                                             int numberOfVertices, int maxX, int maxY) {
     double mutationRate = mutation_rate;
     double crossOverRate = cross_over_rate;
     auto individuals = new vector<Individual *>();
 
     auto polys1 = new list<Polygon *>();
     auto polys2 = new list<Polygon *>();
-    double rand = utils::random(); //random number between [0,1)
+    double rand = utils::random();
     if (rand <= crossOverRate) {
         twoPointCrossover(ind1, ind2, polys1, polys2);
     } else {
@@ -69,8 +69,8 @@ vector<Individual *> *GeneticAlgorithm::mate(Individual *ind1, Individual *ind2,
 void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
                                          list<Polygon *> *off1, list<Polygon *> *off2) {
 
-    Individual *par1 = ind1; //here it was ind1.polygons
-    Individual *par2 = ind2; //here it was ind2.polygons
+    Individual *par1 = ind1;
+    Individual *par2 = ind2;
 
     Individual *fittest = ind1->fitness > ind2->fitness ? par1 : par2;
 
@@ -103,10 +103,10 @@ void GeneticAlgorithm::twoPointCrossover(Individual *ind1, Individual *ind2,
         off2->push_back(new Polygon(fittest->get_dna(i)));
     }
 
-    for (auto & p : clones1) {
+    for (auto &p : clones1) {
         delete p;
     }
-    for (auto & p : clones2) {
+    for (auto &p : clones2) {
         delete p;
     }
 }
@@ -122,20 +122,21 @@ GeneticAlgorithm::cloneParents(Individual *par1, Individual *par2, list<Polygon 
         polys2->push_back(new Polygon(par2->get_dna(i)));
     }
 }
+
 /**
  * probabilistically select an individual from the population based on their
  * fitness. this uses rank selection. although could use
  * roulette(indArr, fitnessSum) for roulette wheel selection.
  */
-Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSum) {
+Individual *GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSum) {
     double nSum = 1.0;
     double r = utils::random();
     int n = indArr.size();
-    int last = n-1;
-    for(int i = 0; i < last; i++) {
+    int last = n - 1;
+    for (int i = 0; i < last; i++) {
         nSum -= n / fitnessSum;
         n--;
-        if(r >= nSum) {
+        if (r >= nSum) {
             return indArr.at(i);
         }
     }
@@ -144,7 +145,6 @@ Individual * GeneticAlgorithm::fps(vector<Individual *> indArr, double fitnessSu
 
 Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     auto bytes = new unsigned char[this->width * this->height * this->channels];
-//    auto bytes2 = new unsigned char[this->width * this->height * this->channels];
     Individual *bestInd = nullptr;
     int j = 0;
     int P;
@@ -152,48 +152,14 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
     auto buf = new unsigned char[this->width * this->height / P * this->channels];
     int buf_ind[100000];
 
-//    int dims[2];
-//    dims[0] = width;
-//    dims[1] = height;
-
-//    if (use_mpi) {
-//        // Send dims
-//        // cout << "rank " << rank << ": sending dims" << endl;
-//        MPI_Bcast(&dims, 2, MPI_INT, 0, MPI_COMM_WORLD);
-//        // cout << "rank: " << rank << ": dims are " << dims[0] << "x" << dims[1] << endl;
-//    }
-
-//    while (j == 0) {
-//        sleep(5);
-//    }
-
-//    int i = 0;
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
-//        if ((epoch + 1) % 100 == 0) {
-//            cout << "Epoch: " << epoch + 1 << "\tPolygons: " << bestInd->polygons->size() << "\tCurrent fitness: " << bestInd->fitness << endl;
-//        }
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
-            double fitness;//, fitness_2;
+            double fitness;
             if (use_mpi) {
-
                 ind->draw_CV_parallel(bytes, buf, buf_ind, width, height, channels);
-
-//                ind->draw_CV(bytes2, width, height);
-
-//                cv::Mat img_parallel = cv::Mat(height, width, CV_8UC4, bytes);
-//                cv::Mat img_serial = cv::Mat(height, width, CV_8UC4, bytes2);
-
-//                cv::imwrite("img_parallel.bmp", img_parallel);
-//                cv::imwrite("img_serial.bmp", img_serial);
-
-//                while (i == 0) {
-//                    sleep(5);
-//                }
-
                 fitness = utils::diff_parallel(bytes, this->data, buf, width, height, channels);
-//                fitness = utils::diff(bytes, this->data, width, height);
             } else {
                 ind->draw_CV(bytes, width, height, channels);
                 fitness = utils::diff(bytes, this->data, width, height, channels);
@@ -206,13 +172,9 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
             }
 
             ind->fitness = fitness;
-//            cout << "Best fitness so far: " << bestInd->fitness << endl;
-
             j++;
         } else {
             if (bestInd != nullptr) {
-                //unsigned char *bestPixels = utils::draw_individuals(this->pop->get_individuals());
-                //
                 int polys_len = bestInd->get_len_dna();
                 if (polys_len != this->num_polygons) {
                     this->num_polygons = polys_len;
@@ -225,7 +187,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
                 Individual *parent1 = fps(this->pop->get_individuals(), this->pop->s);
                 Individual *parent2 = fps(this->pop->get_individuals(), this->pop->s);
                 auto offspring = mate(parent1, parent2,
-                        max_number_of_vertices, this->width, this->height);
+                                      max_number_of_vertices, this->width, this->height);
                 nextGeneration.push_back(offspring->at(0));
                 nextGeneration.push_back(offspring->at(1));
             }
@@ -243,7 +205,7 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
 
 void GeneticAlgorithm::clean_population() {
     vector<Individual *> individuals = this->pop->get_individuals();
-    for (auto & individual : individuals) {
+    for (auto &individual : individuals) {
         delete individual;
     }
 }

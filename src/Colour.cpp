@@ -1,5 +1,5 @@
 //
-// Created by sliberman on 4/5/19.
+// Created by liberman and ayin on 4/5/19.
 //
 
 #include "Colour.h"

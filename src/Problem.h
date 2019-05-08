@@ -1,5 +1,5 @@
 //
-// Created by sliberman on 4/5/19.
+// Created by liberman and ayin on 4/5/19.
 //
 
 #include <string>
@@ -15,6 +15,7 @@ using namespace std;
 class Problem {
 public:
     static void run(cv::Mat *img, int max_epochs, bool use_mpi, int channels, string output_filename);
+
 private:
     GeneticAlgorithm *ga;
 };

@@ -1,5 +1,5 @@
 //
-// Created by sliberman on 4/5/19.
+// Created by liberman and ayin on 4/5/19.
 //
 
 #include <list>
@@ -16,14 +16,23 @@ using namespace std;
 class Polygon {
 public:
     explicit Polygon(Colour *colour);
+
     explicit Polygon(Polygon *original);
-    static Polygon* random_polygon(int number_of_vertices, int max_x, int max_y);
+
+    static Polygon *random_polygon(int number_of_vertices, int max_x, int max_y);
+
     Colour *colour;
+
     void move(int max_x, int max_y);
+
     Point *get_point(int index);
+
     int get_points_length();
+
     void remove_point();
+
     void add_point(Point *point);
+
     void insert_point(int index, Point *p);
 
 private:

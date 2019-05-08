@@ -1,5 +1,5 @@
 //
-// Created by sliberman on 4/5/19.
+// Created by liberman and ayin on 4/5/19.
 //
 
 #include <opencv2/opencv.hpp>
@@ -70,7 +70,7 @@ void Individual::mutate() {
             int len2 = poly->get_points_length();
             if (len2 < max_number_of_vertices) {
                 poly->insert_point(utils::next_int(len2),
-                        new Point(utils::next_int(this->max_x), utils::next_int(this->max_y)));
+                                   new Point(utils::next_int(this->max_x), utils::next_int(this->max_y)));
             }
         }
     } else {
@@ -81,7 +81,7 @@ void Individual::mutate() {
         } else {
             if (len < max_number_of_polygons) {
                 this->insert_dna(utils::next_int(len),
-                        Polygon::random_polygon(this->number_of_vertices, max_x, max_y));
+                                 Polygon::random_polygon(this->number_of_vertices, max_x, max_y));
             }
         }
     }
@@ -105,7 +105,7 @@ void Individual::remove_dna(int index) {
     delete elem;
 }
 
-int Individual::get_len_dna(){
+int Individual::get_len_dna() {
     return this->polygons->size();
 }
 
@@ -115,9 +115,8 @@ void Individual::draw_CPU(unsigned char *canvas, int width, int height, int chan
     }
 
     Colour *c;
-    for (auto & polygon : *this->polygons) {
+    for (auto &polygon : *this->polygons) {
         c = polygon->colour;
-        //        int cnt = 0;
         int min_x_this_pol = width;
         int max_x_this_pol = 0;
         int min_y_this_pol = height;
@@ -133,14 +132,18 @@ void Individual::draw_CPU(unsigned char *canvas, int width, int height, int chan
         for (int i = min_x_this_pol; i < max_x_this_pol; i++) {
             for (int j = min_y_this_pol; j < max_y_this_pol; j++) {
                 if (utils::is_in_polygon(i, j, *polygon)) {
-//                    cnt++;
-                    canvas[(i + j * width) * channels] = (unsigned char)(canvas[(i + j * width) * channels] * (1 - c->get_a())) + (unsigned char)(c->get_r() * c->get_a());
-                    canvas[(i + j * width) * channels + 1] = (unsigned char)(canvas[(i + j * width) * channels + 1] * (1 - c->get_a())) + (unsigned char)(c->get_g() * c->get_a());
-                    canvas[(i + j * width) * channels + 2] = (unsigned char)(canvas[(i + j * width) * channels + 2] * (1 - c->get_a())) + (unsigned char)(c->get_b() * c->get_a());
+                    canvas[(i + j * width) * channels] =
+                            (unsigned char) (canvas[(i + j * width) * channels] * (1 - c->get_a())) +
+                            (unsigned char) (c->get_r() * c->get_a());
+                    canvas[(i + j * width) * channels + 1] =
+                            (unsigned char) (canvas[(i + j * width) * channels + 1] * (1 - c->get_a())) +
+                            (unsigned char) (c->get_g() * c->get_a());
+                    canvas[(i + j * width) * channels + 2] =
+                            (unsigned char) (canvas[(i + j * width) * channels + 2] * (1 - c->get_a())) +
+                            (unsigned char) (c->get_b() * c->get_a());
                 }
             }
         }
-//        cout << "Counts: " << cnt << endl;
     }
 }
 
@@ -154,7 +157,7 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height, int chann
     } else {
         final_img = cv::Mat(height, width, CV_8UC3, canvas);
     }
-    for (auto & polygon : *this->polygons) {
+    for (auto &polygon : *this->polygons) {
         cv::Mat partial_img = final_img.clone();
         Colour *color = polygon->colour;
         cv::Scalar color_s = cv::Scalar(color->get_b(), color->get_g(), color->get_r());
@@ -164,37 +167,22 @@ void Individual::draw_CV(unsigned char *canvas, int width, int height, int chann
             Point *p = polygon->get_point(i);
             pts[i] = cv::Point(p->get_x(), p->get_y());
         }
-        const cv::Point* ppt[1] = {pts};
+        const cv::Point *ppt[1] = {pts};
         cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_4);
 
         cv::addWeighted(partial_img, color->get_a(), final_img, 1.0 - color->get_a(), 0.0, final_img);
 
-//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
-//        cv::imshow("Hola", partial_img);
-//
-//        cv::waitKey(0);
-
         delete[] pts;
-
-//        cv::imwrite("full_img_serial.bmp", final_img);
-
-//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
-//        cv::imshow("Hola", final_img);
-
-//        cv::waitKey(0);
     }
 }
 
 void wake_workers() {
-  // Wake slaves
-  int flag = 0;
-
-  //    cout << "rank " << rank << ": waiting for flag" << endl;
-  MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
-  //    cout << "rank: " << rank << ": flag is " << flag << endl;
+    int flag = 0;
+    MPI_Bcast(&flag, 1, MPI_INT, 0, MPI_COMM_WORLD);
 }
 
-void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height, int channels) {
+void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int *buf_ind, int width, int height,
+                                  int channels) {
     int P;
     MPI_Comm_size(MPI_COMM_WORLD, &P);
     int whole_len = width * height * channels;
@@ -202,24 +190,11 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     int len_each = new_height * width * channels;
     int residual = whole_len - len_each * P;
 
-//    int i = 1;
-//    while (i == 1) {
-//        sleep(5);
-//    }
-
     wake_workers();
 
-    for (int j = 0; j < whole_len; ++j) {
-        canvas[j] = 0;
+    for (int j = 0; j < len_each; ++j) {
+        buf[j] = 0;
     }
-    // cout << "rank " << rank << ": sending scattered canvas" << endl;
-    //cout << "1:0 sending " << len_each << endl;
-    MPI_Scatter(canvas, len_each, MPI_UNSIGNED_CHAR, buf, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-    //cout << "1:0 sent " << len_each << endl;
-    //cout << "2:0 sending " << whole_len - small << endl;
-    MPI_Send(canvas + len_each * P, residual, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD);
-    //cout << "2:0 sent " << whole_len - small << endl;
-    // cout << "rank " << rank << ": canvas sent" << endl;
 
     cv::Mat img;
     if (channels == 4) {
@@ -227,9 +202,6 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
     } else {
         img = cv::Mat(new_height, width, CV_8UC3, buf);
     }
-
-    // Serialize individuals and send them
-    // Format: [len_arr [n_pts r g b a [px py]...]...]
 
     int n_polys = this->get_len_dna();
 
@@ -239,17 +211,17 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
         buf_ind[sz_buf_ind++] = this->get_dna(k)->colour->get_r();
         buf_ind[sz_buf_ind++] = this->get_dna(k)->colour->get_g();
         buf_ind[sz_buf_ind++] = this->get_dna(k)->colour->get_b();
-        buf_ind[sz_buf_ind++] = (int)(255*this->get_dna(k)->colour->get_a());
+        buf_ind[sz_buf_ind++] = (int) (255 * this->get_dna(k)->colour->get_a());
         for (int i = 0; i < this->get_dna(k)->get_points_length(); ++i) {
             buf_ind[sz_buf_ind++] = this->get_dna(k)->get_point(i)->get_x();
             buf_ind[sz_buf_ind++] = this->get_dna(k)->get_point(i)->get_y();
         }
     }
 
-    // cout << "rank " << rank << ": sending ind" << endl;
-    MPI_Bcast(&sz_buf_ind, 1, MPI_INT, 0, MPI_COMM_WORLD);
-    MPI_Bcast(buf_ind, sz_buf_ind, MPI_INT, 0, MPI_COMM_WORLD);
-    // cout << "rank " << rank << ": sent ind" << endl;
+    MPI_Request r1, r2;
+    MPI_Status s;
+    MPI_Ibcast(&sz_buf_ind, 1, MPI_INT, 0, MPI_COMM_WORLD, &r1);
+    MPI_Ibcast(buf_ind, sz_buf_ind, MPI_INT, 0, MPI_COMM_WORLD, &r2);
 
     int r, g, b, a, x, y;
     int cur_off = 0;
@@ -267,35 +239,22 @@ void Individual::draw_CV_parallel(unsigned char *canvas, unsigned char *buf, int
             y = buf_ind[cur_off++];
             pts[i] = cv::Point(x, y);
         }
-        const cv::Point* ppt[1] = {pts};
+        const cv::Point *ppt[1] = {pts};
         cv::fillPoly(partial_img, ppt, n_pts, 1, color_s, cv::LINE_4);
-
-//        cv::namedWindow("Hola", cv::WINDOW_AUTOSIZE);
-//        cv::imshow("Hola", partial_img);
-//
-//        cv::waitKey(0);
 
         cv::addWeighted(partial_img, ((double) a) / 255.0, img, 1.0 - ((double) a) / 255.0, 0.0, img);
 
         delete[] pts;
 
     }
-    
-    //cv::imwrite("part_" + to_string(0) + ".bmp", img);
 
-    // cout << "rank " << rank << ": receiving canvas" << endl;
-    //cout << "3:0 receiving " << len_each << endl;  
-    MPI_Gather(buf, len_each, MPI_UNSIGNED_CHAR, 
-	       canvas, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD);
-    //cout << "3:0 received " << len_each << endl;  
-    MPI_Status status;
-    //cout << "4:0 receiving " << whole_len - small << endl;  
-    MPI_Recv(canvas + len_each * P, residual, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD, &status);
-    //cout << "4:0 received " << whole_len - small << endl;  
-    // cout << "rank " << rank << ": received canvas!" << endl;
-
-//    auto canvas_img = cv::Mat(height, width, CV_8UC4, canvas);
-//    cv::imwrite("full_img_parallel.bmp", canvas_img);
+    MPI_Wait(&r1, &s);
+    MPI_Wait(&r2, &s);
+    MPI_Igather(buf, len_each, MPI_UNSIGNED_CHAR,
+                canvas, len_each, MPI_UNSIGNED_CHAR, 0, MPI_COMM_WORLD, &r1);
+    MPI_Irecv(canvas + len_each * P, residual, MPI_UNSIGNED_CHAR, P - 1, 123, MPI_COMM_WORLD, &r2);
+    MPI_Wait(&r1, &s);
+    MPI_Wait(&r2, &s);
 }
 
 Individual::Individual(Individual *original) {
@@ -310,7 +269,7 @@ Individual::Individual(Individual *original) {
 }
 
 Individual::~Individual() {
-    for (auto & polygon : *this->polygons) {
+    for (auto &polygon : *this->polygons) {
         delete polygon;
     }
 }

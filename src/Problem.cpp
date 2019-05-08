@@ -1,5 +1,5 @@
 //
-// Created by sliberman on 4/5/19.
+// Created by liberman and ayin on 4/5/19.
 //
 
 #include <opencv2/core.hpp>
@@ -15,7 +15,6 @@ void Problem::run(cv::Mat *img, int max_epochs, bool use_mpi, int channels, stri
     cv::Size s = img->size();
     GeneticAlgorithm ga = GeneticAlgorithm(img->data, s.width, s.height, channels);
     Individual *result = ga.evolve(max_epochs, use_mpi);
-//    result->draw_CPU(canvas, s.width, s.height);
     cv::Mat result_mat;
     if (channels == 4) {
         result_mat = cv::Mat(s.height, s.width, CV_8UC4);
@@ -37,10 +36,4 @@ void Problem::run(cv::Mat *img, int max_epochs, bool use_mpi, int channels, stri
         cvtColor(result_mat, result_mat, cv::COLOR_BGRA2BGR);
     }
     imwrite(output_filename, result_mat);
-
-//    namedWindow("Display window");
-//    imshow("Display window", result_mat);
-//
-//    waitKey(0);
-//    destroyAllWindows();
 }

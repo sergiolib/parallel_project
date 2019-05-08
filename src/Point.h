@@ -1,5 +1,5 @@
 //
-// Created by sliberman on 4/5/19.
+// Created by liberman and ayin on 4/5/19.
 //
 
 #ifndef PARALLELGENETIC_POINT_H
@@ -9,11 +9,17 @@
 class Point {
 public:
     Point(int x, int y);
+
     explicit Point(Point *original);
+
     void set_x(int x);
+
     int get_x();
+
     void set_y(int y);
+
     int get_y();
+
 private:
     int x;
     int y;
