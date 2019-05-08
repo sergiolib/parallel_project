@@ -169,9 +169,9 @@ Individual *GeneticAlgorithm::evolve(int max_epochs, bool use_mpi) {
 
 //    int i = 0;
     for (int epoch = 0; epoch < max_epochs; ++epoch) {
-        if ((epoch + 1) % 100 == 0) {
-            cout << "Epoch: " << epoch + 1 << "\tPolygons: " << bestInd->polygons->size() << "\tCurrent fitness: " << bestInd->fitness << endl;
-        }
+//        if ((epoch + 1) % 100 == 0) {
+//            cout << "Epoch: " << epoch + 1 << "\tPolygons: " << bestInd->polygons->size() << "\tCurrent fitness: " << bestInd->fitness << endl;
+//        }
         if (j != this->indivs) {
             vector<Individual *> individuals = this->pop->get_individuals();
             Individual *ind = individuals.at(j);
