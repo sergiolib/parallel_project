@@ -7,7 +7,6 @@
 #include <opencv2/opencv.hpp>
 
 using namespace std;
-using namespace cv;
 
 #ifndef PARALLELGENETIC_PROBLEM_H
 #define PARALLELGENETIC_PROBLEM_H
@@ -15,7 +14,7 @@ using namespace cv;
 
 class Problem {
 public:
-    static void run(Mat *img, int max_epochs, bool use_mpi, int channels, String output_filename);
+    static void run(cv::Mat *img, int max_epochs, bool use_mpi, int channels, string output_filename);
 private:
     GeneticAlgorithm *ga;
 };

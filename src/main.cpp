@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <opencv2/opencv.hpp>
 #include <ctime>
+#include "utils.h"
 
 using namespace std;
 
@@ -160,11 +161,12 @@ int main(int argc, char **argv) {
 
     start = clock();
 
-    String file, output_filename;
+    string file, output_filename = "output/output.jpg";
     int max_epochs = 1000;
+    utils::set_seed(time(0));
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "-i") == 0) {
-            String tmp(argv[i + 1]);
+            string tmp(argv[i + 1]);
             file = tmp;
         }
         if (strcmp(argv[i], "-e") == 0) {
@@ -172,6 +174,9 @@ int main(int argc, char **argv) {
         }
         if (strcmp(argv[i], "-o") == 0) {
             output_filename = argv[i + 1];
+        }
+        if (strcmp(argv[i], "-s") == 0) {
+            utils::set_seed(stoi(argv[i + 1]));
         }
         i++;
     }
@@ -189,7 +194,7 @@ int main(int argc, char **argv) {
         mpi = true;
     }
 
-    cv::Mat image = cv::imread(file, IMREAD_UNCHANGED);
+    cv::Mat image = cv::imread(file, cv::IMREAD_UNCHANGED);
     int channels = image.channels();
 
 
@@ -207,7 +212,7 @@ int main(int argc, char **argv) {
     } else {
         // Process diff
         // Receive len
-        Size s = image.size();
+        cv::Size s = image.size();
         int width = s.width;
         int height = s.height;
         int len_each = height / P * width * channels;

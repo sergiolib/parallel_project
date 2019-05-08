@@ -3,7 +3,7 @@
 //
 
 #include <opencv2/opencv.hpp>
-#include <random>
+#include <cstdlib>
 #include <unistd.h>
 #include "mpi.h"
 
@@ -15,17 +15,15 @@ int utils::next_int(int n) {
      * Get a random number up until n.
      */
 
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dis(0, n);
-    return dis(gen);
+    return rand() % (n + 1);
 }
 
 double utils::random() {
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<> dis(0.0, 1.0);
-    return dis(gen);
+    return (double)rand() / (double)RAND_MAX;
+}
+
+void utils::set_seed(int seed) {
+    srand(seed);
 }
 
 void wake_workers_tmp() {
