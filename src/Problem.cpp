@@ -21,15 +21,7 @@ void Problem::run(cv::Mat *img, int max_epochs, bool use_mpi, int channels, stri
     } else {
         result_mat = cv::Mat(s.height, s.width, CV_8UC3);
     }
-    if (use_mpi) {
-        int len_each = s.height / channels * s.width * channels;
-        int residual = s.height * s.width * channels - len_each * channels;
-        auto buf = new unsigned char[len_each + residual];
-        result->draw_CV(result_mat.data, s.width, s.height, channels);
-        delete[] buf;
-    } else {
-        result->draw_CV(result_mat.data, s.width, s.height, channels);
-    }
+    result->draw_CV(result_mat.data, s.width, s.height, channels);
 
     if (channels == 4) {
         cvtColor(result_mat, result_mat, cv::COLOR_BGRA2BGR);
