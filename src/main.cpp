@@ -160,7 +160,7 @@ int main(int argc, char **argv) {
 
     start = clock();
 
-    String file;
+    String file, output_filename;
     int max_epochs = 1000;
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "-i") == 0) {
@@ -169,6 +169,9 @@ int main(int argc, char **argv) {
         }
         if (strcmp(argv[i], "-e") == 0) {
             max_epochs = stoi(argv[i + 1]);
+        }
+        if (strcmp(argv[i], "-o") == 0) {
+            output_filename = argv[i + 1];
         }
         i++;
     }
@@ -193,7 +196,7 @@ int main(int argc, char **argv) {
     if (!mpi || rank == 0) {
 
         if (image.data) {
-            Problem::run(&image, max_epochs, mpi, channels);
+            Problem::run(&image, max_epochs, mpi, channels, output_filename);
         } else {
             cout << "Image not found. Exiting." << endl;
         }

@@ -15,7 +15,7 @@ using namespace cv;
 
 class Problem {
 public:
-    static void run(Mat *img, int max_epochs, bool use_mpi, int channels);
+    static void run(Mat *img, int max_epochs, bool use_mpi, int channels, String output_filename);
 private:
     GeneticAlgorithm *ga;
 };

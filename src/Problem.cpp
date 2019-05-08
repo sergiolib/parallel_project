@@ -12,7 +12,7 @@
 using namespace cv;
 using namespace std;
 
-void Problem::run(Mat *img, int max_epochs, bool use_mpi, int channels) {
+void Problem::run(Mat *img, int max_epochs, bool use_mpi, int channels, String output_filename) {
     Size s = img->size();
     GeneticAlgorithm ga = GeneticAlgorithm(img->data, s.width, s.height, channels);
     Individual *result = ga.evolve(max_epochs, use_mpi);
@@ -37,7 +37,7 @@ void Problem::run(Mat *img, int max_epochs, bool use_mpi, int channels) {
     if (channels == 4) {
         cvtColor(result_mat, result_mat, COLOR_BGRA2BGR);
     }
-    imwrite("output/output_file.png", result_mat);
+    imwrite(output_filename, result_mat);
 
 //    namedWindow("Display window");
 //    imshow("Display window", result_mat);
