@@ -36,8 +36,6 @@ private:
     int height;
     int channels;
     int num_polygons;
-
-    void check_equal(unsigned char *bytes1, unsigned char *bytes2, int i);
 };
 
 

@@ -210,13 +210,3 @@ void GeneticAlgorithm::clean_population() {
         delete individual;
     }
 }
-
-void GeneticAlgorithm::check_equal(unsigned char *bytes1, unsigned char *bytes2, int i) {
-    for (int n = 0; n < i; n++) {
-        if (bytes1[n] != bytes2[n]) {
-            cout << "They are different at " << n << "/" << i << "!" << endl;
-            return;
-        }
-    }
-    cout << "They are equal!" << endl;
-}
